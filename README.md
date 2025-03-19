@@ -13,6 +13,35 @@ This tool is provided for educational purposes only. Please be aware that:
 - We do not encourage or support any violation of Mojang's Terms of Service
 - Use at your own risk
 
+## 🌟 New! Beginner-Friendly Interface
+
+We've added a brand new beginner-friendly interface that makes it easy for anyone to use this tool, even if you have no coding experience!
+
+### Getting Started for Beginners
+
+1. **Install Python**: If you don't have Python installed, download and install it from [python.org](https://python.org) (version 3.6 or higher)
+
+2. **Run the Setup Script**: Double-click on `setup.py` or run it from the command line:
+   ```bash
+   python setup.py
+   ```
+   This will guide you through the installation process with simple instructions.
+
+3. **Launch the Easy Interface**: Once setup is complete, run:
+   ```bash
+   python easy_sniper.py
+   ```
+   Or use the desktop shortcut (Windows users)
+
+4. **Use the Menu System**: The easy interface provides simple menus to:
+   - Check if a username is available
+   - Monitor a username until it becomes available
+   - Claim a username when it's available
+   - Check your account status
+   - Get help and instructions
+
+No coding knowledge required! The tool will walk you through each step.
+
 ## ✨ Features
 
 ### Core Features
@@ -48,6 +77,18 @@ This tool is provided for educational purposes only. Please be aware that:
 
 ## 🚀 Installation
 
+### Easy Installation (Recommended for Beginners)
+
+1. Download this repository by clicking the green "Code" button and selecting "Download ZIP"
+2. Extract the ZIP file to a folder on your computer
+3. Run the setup script by double-clicking `setup.py` or running:
+   ```bash
+   python setup.py
+   ```
+4. Follow the on-screen instructions
+
+### Advanced Installation (For Developers)
+
 1. Clone this repository:
 ```bash
 git clone https://github.com/yourusername/minecraft-sniper.git
@@ -67,9 +108,25 @@ http://host:port
 
 ## 📋 Usage
 
-The tool provides two interfaces: a simple command-line interface for basic use and an advanced interface with more features.
+### Beginner-Friendly Interface
 
-### Basic Usage
+Run the easy interface:
+```bash
+python easy_sniper.py
+```
+
+This will open a menu-driven interface where you can:
+- Check a username's availability
+- Monitor a username until it becomes available
+- Claim an available username
+- Check your account status
+- See help and instructions
+
+### Advanced Command-Line Interface
+
+The tool also provides two command-line interfaces: a simple one for basic use and an advanced interface with more features.
+
+#### Basic Usage
 
 To check if a username is available:
 
@@ -89,7 +146,7 @@ To snipe a username at a specific time:
 python minecraft_sniper.py snipe username -t "2023-08-15 14:30:00" -s distributed
 ```
 
-### Advanced Usage
+#### Advanced Usage
 
 The advanced version includes more features and options:
 
@@ -276,7 +333,7 @@ This will show you:
 
 ## 📝 Future Improvements
 
-- GUI interface for easier use
+- ✅ GUI interface for easier use (now available with `easy_sniper.py`!)
 - More advanced proxy rotation and management
 - Machine learning for optimal strategy selection
 - Integration with more notification services
