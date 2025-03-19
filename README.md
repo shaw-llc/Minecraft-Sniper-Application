@@ -1,6 +1,6 @@
 # Minecraft Username Sniper
 
-A powerful tool for checking, monitoring, and claiming Minecraft usernames when they become available with high precision. **Updated and verified working as of October 2023.**
+A powerful tool for checking, monitoring, and claiming Minecraft usernames when they become available with high precision. **Updated and verified working as of March 19th, 2025.**
 
 ![Minecraft Username Sniper](https://www.minecraft.net/etc.clientlibs/minecraft/clientlibs/main/resources/img/header/logo.png)
 
@@ -13,9 +13,9 @@ This tool is provided for educational purposes only. Please be aware that:
 - We do not encourage or support any violation of Mojang's Terms of Service
 - Use at your own risk
 
-## 📢 Latest Updates (2023)
+## 📢 Latest Updates (March 2025)
 
-**Important API Information**: According to current research, Mojang's API enforces a rate limit of approximately 60 requests per minute. Our tool intelligently manages these limits to avoid temporary blocks while maximizing effectiveness.
+**Important API Information**: According to current research (as of March 19th, 2025), Mojang's API enforces a rate limit of approximately 60 requests per minute. Our tool intelligently manages these limits to avoid temporary blocks while maximizing effectiveness.
 
 **Key Improvements**:
 - Smart rate limiting system that respects Mojang's 60 requests/minute constraint
