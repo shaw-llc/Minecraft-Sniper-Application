@@ -13,6 +13,33 @@ This tool is provided for educational purposes only. Please be aware that:
 - We do not encourage or support any violation of Mojang's Terms of Service
 - Use at your own risk
 
+## 📢 Latest Updates (2023)
+
+**Important API Information**: According to current research, Mojang's API enforces a rate limit of approximately 60 requests per minute. Our tool intelligently manages these limits to avoid temporary blocks while maximizing effectiveness.
+
+**Key Improvements**:
+- Smart rate limiting system that respects Mojang's 60 requests/minute constraint
+- Optimized batch processing of username availability checks
+- Enhanced proxy support for distributed requests
+- Improved error handling and recovery from rate limiting
+
+## ⚖️ Ethical Considerations
+
+Based on the latest research about Minecraft username sniping, it's important to understand:
+
+1. **Terms of Service**: Using automated tools to interact with Mojang's API may violate their EULA, especially for commercial purposes.
+
+2. **Personal Use**: While personal, non-commercial use exists in a gray area, you should be aware of the potential risks:
+   - Account suspension or ban
+   - IP rate limiting
+   - Loss of access to Minecraft services
+
+3. **Rate Limiting**: Our tool is designed to respect Mojang's rate limits (60 requests/minute) to minimize impact on their services and reduce your risk of penalties.
+
+4. **Community Impact**: Aggressive sniping can create artificial scarcity and potentially prevent legitimate users from obtaining usernames through normal means.
+
+We've designed this tool primarily for educational purposes and personal use. It includes safeguards to respect rate limits and reduce potential negative impacts.
+
 ## 🚀 Quick Setup for Complete Beginners
 
 Never used Python before? No problem! Follow these simple steps:

@@ -907,23 +907,25 @@ class Sniper:
     
     def check_username(self, username):
         """Check if a username is available"""
-        is_available = self.name_checker.is_username_available(username)
-        self.stats.update_check_stats(username, is_available)
-        return is_available
+        return self.name_checker.check_username_availability(username)
     
-    def check_usernames_bulk(self, usernames):
-        """Check multiple usernames and return available ones"""
-        available = []
+    def check_usernames(self, usernames):
+        """Check multiple usernames at once (more efficient)"""
+        if len(usernames) > 10:
+            logging.warning(f"{Fore.YELLOW}Checking more than 10 usernames at once may exceed rate limits.")
         
-        with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
-            results = list(executor.map(self.check_username, usernames))
+        results = {}
+        # Process in batches of 10 to utilize bulk API efficiently
+        for i in range(0, len(usernames), 10):
+            batch = usernames[i:i+10]
+            for username in batch:
+                results[username] = self.name_checker.check_username_availability(username)
             
-            # Collect available usernames
-            for username, is_available in zip(usernames, results):
-                if is_available:
-                    available.append(username)
+            # Small delay between batches
+            if i + 10 < len(usernames):
+                time.sleep(1)
         
-        return available
+        return results
     
     def get_drop_time(self, username):
         """Get the estimated drop time for a username"""

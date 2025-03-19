@@ -4,6 +4,7 @@ Minecraft Authentication Module
 
 This module handles authentication with Microsoft for Minecraft accounts.
 It implements the Microsoft OAuth flow for Minecraft/Xbox authentication.
+Updated with the latest OAuth flow as of 2023.
 """
 
 import os
@@ -27,6 +28,9 @@ XSTS_AUTH_URL = "https://xsts.auth.xboxlive.com/xsts/authorize"
 MINECRAFT_AUTH_URL = "https://api.minecraftservices.com/authentication/login_with_xbox"
 MINECRAFT_PROFILE_URL = "https://api.minecraftservices.com/minecraft/profile"
 MINECRAFT_NAME_CHANGE_URL = "https://api.minecraftservices.com/minecraft/profile/name/{username}"
+
+# Auth token cache file
+AUTH_CACHE_FILE = "auth_cache.json"
 
 # OAuth server for callback handling
 class AuthCallbackHandler(BaseHTTPRequestHandler):
@@ -76,13 +80,14 @@ class AuthCallbackHandler(BaseHTTPRequestHandler):
 class MinecraftAuth:
     """Handle Minecraft authentication via Microsoft OAuth"""
     
-    def __init__(self):
+    def __init__(self, cache_file=AUTH_CACHE_FILE):
         """Initialize the authentication handler"""
         self.access_token = None
         self.refresh_token = None
         self.minecraft_token = None
         self.minecraft_profile = None
         self.token_expires_at = 0
+        self.cache_file = cache_file
         
         # Try to load cached credentials
         self._load_cached_credentials()
@@ -90,8 +95,8 @@ class MinecraftAuth:
     def _load_cached_credentials(self):
         """Load cached credentials from file if available"""
         try:
-            if os.path.exists("auth_cache.json"):
-                with open("auth_cache.json", "r") as f:
+            if os.path.exists(self.cache_file):
+                with open(self.cache_file, "r") as f:
                     data = json.load(f)
                     
                     self.access_token = data.get("access_token")
@@ -118,7 +123,7 @@ class MinecraftAuth:
     def _save_cached_credentials(self):
         """Save credentials to cache file"""
         try:
-            with open("auth_cache.json", "w") as f:
+            with open(self.cache_file, "w") as f:
                 json.dump({
                     "access_token": self.access_token,
                     "refresh_token": self.refresh_token,
@@ -300,8 +305,26 @@ class MinecraftAuth:
             return False
     
     def validate_minecraft_token(self):
-        """Validate the Minecraft token by getting the profile"""
-        return self.get_profile()
+        """Verify that the current Minecraft token is valid"""
+        try:
+            if not self.minecraft_token:
+                return False
+                
+            headers = {
+                "Authorization": f"Bearer {self.minecraft_token}"
+            }
+            
+            response = requests.get(MINECRAFT_PROFILE_URL, headers=headers)
+            
+            if response.status_code == 200:
+                # Store profile data for later use
+                self.minecraft_profile = response.json()
+                return True
+                
+            return False
+        except Exception as e:
+            logging.error(f"{Fore.RED}Error validating Minecraft token: {str(e)}")
+            return False
     
     def get_profile(self):
         """Get the Minecraft profile information"""
@@ -333,75 +356,104 @@ class MinecraftAuth:
             return False
     
     def change_username(self, new_username):
-        """Change the Minecraft username"""
-        if not self.minecraft_token:
-            logging.error(f"{Fore.RED}Not authenticated")
-            return False
+        """Change the Minecraft username using the authenticated account
         
-        try:
-            url = MINECRAFT_NAME_CHANGE_URL.format(username=new_username)
+        Args:
+            new_username: The new username to set
             
-            response = requests.put(
-                url,
-                headers={
-                    "Authorization": f"Bearer {self.minecraft_token}",
-                    "Content-Type": "application/json"
-                }
-            )
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            if not self.minecraft_token:
+                logging.error(f"{Fore.RED}Not authenticated. Call authenticate() first")
+                return False
+            
+            # Validate the token before attempting to change the name
+            if not self.validate_minecraft_token():
+                logging.error(f"{Fore.RED}Invalid or expired Minecraft token")
+                return False
+            
+            url = MINECRAFT_NAME_CHANGE_URL.format(username=new_username)
+            headers = {
+                "Authorization": f"Bearer {self.minecraft_token}",
+                "Content-Type": "application/json"
+            }
+            
+            # The API requires a PUT request with an empty body
+            response = requests.put(url, headers=headers, json={})
             
             if response.status_code == 200:
-                logging.info(f"{Fore.GREEN}Successfully changed username to {new_username}")
-                # Update profile
-                self.get_profile()
+                logging.info(f"{Fore.GREEN}Successfully changed username to '{new_username}'")
+                # Update profile data
+                self.validate_minecraft_token()
                 return True
             elif response.status_code == 400:
+                # Parse the error message
                 error_data = response.json()
                 error_message = error_data.get("errorMessage", "Unknown error")
                 logging.error(f"{Fore.RED}Failed to change username: {error_message}")
                 return False
             elif response.status_code == 401:
-                # Token expired
-                logging.error(f"{Fore.RED}Authentication expired")
+                logging.error(f"{Fore.RED}Authentication error (401)")
                 return False
             elif response.status_code == 403:
-                # Not eligible for name change
-                logging.error(f"{Fore.RED}Not eligible for name change (30-day cooldown or premium required)")
+                logging.error(f"{Fore.RED}Not eligible for name change (403)")
+                return False
+            elif response.status_code == 429:
+                logging.error(f"{Fore.RED}Rate limited (429)")
                 return False
             else:
-                logging.error(f"{Fore.RED}Failed to change username: {response.status_code}")
+                logging.error(f"{Fore.RED}Unexpected response: {response.status_code}")
+                try:
+                    logging.error(f"{Fore.RED}Response: {response.json()}")
+                except:
+                    logging.error(f"{Fore.RED}Response text: {response.text}")
                 return False
+                
         except Exception as e:
             logging.error(f"{Fore.RED}Error changing username: {str(e)}")
             return False
     
     def get_current_username(self):
-        """Get the current Minecraft username"""
+        """Get the current username of the authenticated account"""
         if not self.minecraft_profile:
-            if not self.get_profile():
+            if not self.validate_minecraft_token():
                 return None
         
         return self.minecraft_profile.get("name")
     
     def is_eligible_for_name_change(self):
-        """Check if the account is eligible for a name change"""
-        if not self.minecraft_token:
-            logging.error(f"{Fore.RED}Not authenticated")
-            return False
+        """Check if the account is eligible for a name change
         
+        Returns:
+            bool: True if eligible, False otherwise
+        """
         try:
-            response = requests.get(
-                "https://api.minecraftservices.com/minecraft/profile/namechange",
-                headers={
-                    "Authorization": f"Bearer {self.minecraft_token}"
-                }
-            )
+            if not self.minecraft_token:
+                logging.error(f"{Fore.RED}Not authenticated. Call authenticate() first")
+                return False
+            
+            # Validate the token before checking eligibility
+            if not self.validate_minecraft_token():
+                logging.error(f"{Fore.RED}Invalid or expired Minecraft token")
+                return False
+            
+            # In the current API, we can check the nameChangeAllowed field in the profile
+            if self.minecraft_profile and "nameChangeAllowed" in self.minecraft_profile:
+                return self.minecraft_profile["nameChangeAllowed"]
+            
+            # If the field is not present, use the alternative check
+            url = "https://api.minecraftservices.com/minecraft/profile/namechange"
+            headers = {"Authorization": f"Bearer {self.minecraft_token}"}
+            
+            response = requests.get(url, headers=headers)
             
             if response.status_code == 200:
                 data = response.json()
                 return data.get("nameChangeAllowed", False)
-            else:
-                logging.error(f"{Fore.RED}Failed to check name change eligibility: {response.status_code}")
-                return False
+            
+            return False
         except Exception as e:
             logging.error(f"{Fore.RED}Error checking name change eligibility: {str(e)}")
             return False

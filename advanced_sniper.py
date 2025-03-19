@@ -16,7 +16,7 @@ import datetime
 import threading
 from colorama import Fore, Style, init
 from dotenv import load_dotenv
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from minecraft_auth import MinecraftAuth
 from name_utils import NameChecker
@@ -43,6 +43,142 @@ logging.basicConfig(
 # Constants
 MAX_THREADS = 5
 VERSION = "2.0.0"
+
+class DistributedStrategy:
+    """
+    Distributed strategy that uses multiple threads to maximize claim chances
+    
+    This strategy follows Mojang's API rate limits (60 requests/minute) by distributing
+    requests across multiple threads while staying within overall limits.
+    """
+    
+    def __init__(self, thread_count=5, initial_delay=1.0, max_requests_per_thread=10):
+        """Initialize the distributed strategy"""
+        self.thread_count = min(thread_count, 8)  # Cap at 8 threads to avoid excessive requests
+        self.initial_delay = initial_delay
+        self.max_requests_per_thread = max_requests_per_thread
+        self.name = "distributed"
+    
+    def execute(self, sniper, username, target_time=None):
+        """Execute the strategy"""
+        logging.info(f"{Fore.CYAN}Using Distributed Strategy with {self.thread_count} threads")
+        
+        # If we have a target time, wait until just before it
+        if target_time:
+            wait_until_close(target_time, buffer_seconds=self.initial_delay)
+        
+        result = SniperResult(username)
+        result.strategy = self.name
+        result.start_time = datetime.datetime.now()
+        
+        # Calculate safe request distribution to respect rate limits
+        # (60 requests/minute across all threads)
+        total_safe_requests = 60
+        requests_per_thread = min(self.max_requests_per_thread, 
+                                 total_safe_requests // self.thread_count)
+        thread_delay = 60 / total_safe_requests  # seconds between requests
+        
+        logging.info(f"{Fore.CYAN}Each thread will make up to {requests_per_thread} attempts")
+        
+        # Create and start worker threads
+        results = []
+        with ThreadPoolExecutor(max_workers=self.thread_count) as executor:
+            futures = []
+            for i in range(self.thread_count):
+                # Stagger the threads slightly
+                thread_start_delay = i * (thread_delay / 2)
+                futures.append(executor.submit(
+                    self._worker_thread, 
+                    sniper, 
+                    username, 
+                    i, 
+                    requests_per_thread,
+                    thread_delay,
+                    thread_start_delay
+                ))
+            
+            # Wait for all threads to complete or until successful
+            for future in as_completed(futures):
+                thread_result = future.result()
+                results.append(thread_result)
+                if thread_result and thread_result.success:
+                    # Cancel remaining futures if one succeeded
+                    for f in futures:
+                        if not f.done():
+                            f.cancel()
+                    break
+        
+        # Process results
+        successful_results = [r for r in results if r and r.success]
+        if successful_results:
+            result = successful_results[0]
+        else:
+            # Combine attempt information from all threads
+            result.attempts = sum(r.attempts if r else 0 for r in results)
+            result.time_taken = (datetime.datetime.now() - result.start_time).total_seconds()
+            result.error = "Failed to claim username across all threads"
+            
+            # Check if any availability was detected
+            availability_results = [r for r in results if r and r.availability_detected]
+            result.availability_detected = len(availability_results) > 0
+        
+        return result
+    
+    def _worker_thread(self, sniper, username, thread_id, max_attempts, delay, start_delay=0):
+        """Worker thread that attempts to claim the username"""
+        thread_result = SniperResult(username)
+        thread_result.strategy = f"{self.name}_thread_{thread_id}"
+        thread_result.start_time = datetime.datetime.now()
+        
+        # If requested, add a start delay for this thread (for staggering)
+        if start_delay > 0:
+            time.sleep(start_delay)
+        
+        attempts = 0
+        availability_detected = False
+        
+        # Make attempt using authenticated client
+        auth = sniper.auth
+        for _ in range(max_attempts):
+            if attempts >= max_attempts:
+                break
+                
+            # Check if the username is available first
+            is_available = sniper.check_username(username)
+            thread_result.requests.append(datetime.datetime.now())
+            
+            if is_available:
+                availability_detected = True
+                logging.info(f"{Fore.GREEN}Thread {thread_id}: Username '{username}' is available! Attempting to claim...")
+                
+                # Attempt to claim immediately
+                try:
+                    success = auth.change_username(username)
+                    thread_result.requests.append(datetime.datetime.now())
+                    thread_result.claim_time = datetime.datetime.now()
+                    
+                    if success:
+                        logging.info(f"{Fore.GREEN}Thread {thread_id}: Successfully claimed username '{username}'!")
+                        thread_result.success = True
+                        thread_result.attempts = attempts + 1
+                        thread_result.time_taken = (datetime.datetime.now() - thread_result.start_time).total_seconds()
+                        return thread_result
+                    else:
+                        logging.warning(f"{Fore.YELLOW}Thread {thread_id}: Failed to claim '{username}' despite availability")
+                except Exception as e:
+                    logging.error(f"{Fore.RED}Thread {thread_id}: Error claiming username: {str(e)}")
+            
+            # Add a delay between attempts to respect rate limits
+            time.sleep(delay)
+            attempts += 1
+        
+        thread_result.success = False
+        thread_result.attempts = attempts
+        thread_result.time_taken = (datetime.datetime.now() - thread_result.start_time).total_seconds()
+        thread_result.availability_detected = availability_detected
+        thread_result.error = "Maximum attempts reached" if not availability_detected else "Failed to claim despite availability"
+        
+        return thread_result
 
 class AdvancedSniper:
     """Advanced wrapper around the core Sniper class to handle multiple usernames and configurations"""

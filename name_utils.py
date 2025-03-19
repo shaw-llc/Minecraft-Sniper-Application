@@ -32,9 +32,15 @@ USER_AGENTS = [
 ]
 
 # Default delay between requests to avoid rate limiting
-DEFAULT_DELAY = 1.5  # seconds
+# Updated according to 2025 API rate limits: 60 requests per minute
+DEFAULT_DELAY = 1.0  # seconds (safe value to stay under 60 requests/minute)
 MAX_RETRIES = 3
 PROXY_TIMEOUT = 10  # seconds
+
+# Rate limiting constants (based on 2025 Mojang API)
+MAX_REQUESTS_PER_MINUTE = 60
+RATE_LIMIT_WINDOW = 60  # seconds
+RATE_LIMIT_BUFFER = 0.9  # Use 90% of the limit to be safe
 
 class NameChecker:
     """Handle Minecraft username checking and availability"""
@@ -55,6 +61,10 @@ class NameChecker:
         self.proxy_lock = threading.Lock()
         self.failed_proxies = set()
         self.proxy_performance = {}  # Track response times for each proxy
+        
+        # For rate limiting
+        self.request_times = []
+        self.request_lock = threading.Lock()
         
         # Rotate user agents to avoid detection
         self._rotate_user_agent()
@@ -238,23 +248,71 @@ class NameChecker:
             time.sleep(1)  # Brief delay before retry
             return self.make_request(url, method, data, headers, timeout, retry_count + 1)
     
-    def is_username_available(self, username):
-        """Check if a username is available via Mojang API"""
-        url = f"{API_BASE_URL}{NAME_AVAILABILITY_ENDPOINT.format(username=username)}"
-        response = self.make_request(url)
-        
-        if not response:
-            return None
-        
-        # Status code 204 (No Content) means the username is available
-        if response.status_code == 204:
-            return True
-        # Status code 200 means the username is taken
-        elif response.status_code == 200:
+    def check_username_availability(self, username, use_proxy=True):
+        """Check if a Minecraft username is available"""
+        if not self.is_valid_minecraft_username(username):
             return False
-        else:
-            logging.error(f"{Fore.RED}Error checking username availability: {response.status_code}")
-            return None
+        
+        # Apply rate limiting before making request
+        self._enforce_rate_limit()
+        
+        url = f"{API_BASE_URL}{NAME_AVAILABILITY_ENDPOINT}".format(username=username)
+        
+        # Rotate user agent
+        self._rotate_user_agent()
+        
+        # Use proxy if requested and available
+        proxies = self._get_next_proxy() if use_proxy and self.proxies else None
+        
+        retries = 0
+        while retries < MAX_RETRIES:
+            try:
+                response = self.session.get(url, proxies=proxies, timeout=PROXY_TIMEOUT)
+                
+                # Track proxy performance
+                if proxies:
+                    proxy_url = proxies.get("http")
+                    if proxy_url and proxy_url not in self.proxy_performance:
+                        self.proxy_performance[proxy_url] = response.elapsed.total_seconds()
+                
+                # 204 means username is available
+                # 200 means username exists
+                # Handle other status codes as needed
+                if response.status_code == 204:
+                    return True  # Username is available
+                elif response.status_code == 200:
+                    return False  # Username exists
+                elif response.status_code == 429:
+                    logging.warning(f"{Fore.YELLOW}Rate limit hit checking {username}. Backing off...")
+                    # Exponential backoff
+                    wait_time = (2 ** retries) + random.uniform(0, 1)
+                    time.sleep(wait_time)
+                else:
+                    logging.warning(f"{Fore.RED}Unexpected status code {response.status_code} for {username}")
+            
+            except (ProxyError, SSLError, ConnectionError, requests.exceptions.Timeout) as e:
+                # Log the proxy error
+                if proxies:
+                    proxy_url = proxies.get("http")
+                    if proxy_url:
+                        logging.warning(f"{Fore.RED}Proxy error with {proxy_url}: {str(e)}")
+                        with self.proxy_lock:
+                            self.failed_proxies.add(proxy_url)
+                
+                # Try a different proxy
+                if use_proxy and self.proxies:
+                    proxies = self._get_next_proxy()
+            
+            except Exception as e:
+                logging.error(f"{Fore.RED}Error checking {username}: {str(e)}")
+            
+            retries += 1
+            if retries < MAX_RETRIES:
+                # Add a small delay before retrying
+                time.sleep(self.base_delay + random.uniform(0, 1))
+        
+        # Default to unavailable if we couldn't determine
+        return False
     
     def get_drop_time(self, username):
         """
@@ -298,12 +356,12 @@ class NameChecker:
         return len(username)
     
     def is_valid_minecraft_username(self, username):
-        """Check if a username follows Minecraft username rules"""
-        # Minecraft usernames can only contain letters, numbers, and underscores
-        # They must be between 3 and 16 characters long
-        if not re.match(r'^[a-zA-Z0-9_]{3,16}$', username):
+        """Check if a username is valid according to Minecraft's rules"""
+        # Username must be 3-16 characters, only letters, numbers, and underscores
+        if not username or not 3 <= len(username) <= 16:
             return False
-        return True
+        # Check for valid characters (letters, numbers, underscore)
+        return bool(re.match(r'^[a-zA-Z0-9_]+$', username))
     
     def is_premium_username(self, username):
         """
@@ -514,7 +572,7 @@ class NameChecker:
                 if len(available_names) >= limit:
                     break
                     
-                if self.is_username_available(pattern):
+                if self.check_username_availability(pattern):
                     available_names.append(pattern)
         else:
             # For longer lengths, use random generation
@@ -527,7 +585,7 @@ class NameChecker:
                 # Generate a random username of specified length
                 username = ''.join(random.choice(chars) for _ in range(length))
                 
-                if self.is_username_available(username):
+                if self.check_username_availability(username):
                     available_names.append(username)
         
         return available_names
@@ -541,6 +599,33 @@ class NameChecker:
         for char in chars:
             yield from self._generate_patterns(chars, length - 1, current + char)
 
+    def _enforce_rate_limit(self):
+        """Enforce the rate limit by waiting if necessary"""
+        with self.request_lock:
+            current_time = time.time()
+            
+            # Remove request timestamps older than the window
+            self.request_times = [t for t in self.request_times if current_time - t < RATE_LIMIT_WINDOW]
+            
+            # If we're approaching the limit, calculate how long to wait
+            if len(self.request_times) >= int(MAX_REQUESTS_PER_MINUTE * RATE_LIMIT_BUFFER):
+                # Wait until the oldest request falls out of the window
+                if self.request_times:
+                    wait_time = RATE_LIMIT_WINDOW - (current_time - self.request_times[0])
+                    if wait_time > 0:
+                        logging.info(f"{Fore.YELLOW}Rate limit approaching, waiting {wait_time:.2f}s")
+                        time.sleep(wait_time)
+            
+            # Add the current request time
+            self.request_times.append(time.time())
+            
+            # Always enforce minimum delay between requests
+            elapsed = current_time - self.last_request_time
+            if elapsed < self.base_delay:
+                time.sleep(self.base_delay - elapsed)
+            
+            self.last_request_time = time.time()
+
 
 if __name__ == "__main__":
     # Simple test of the name checker
@@ -551,7 +636,7 @@ if __name__ == "__main__":
     test_username = "notch"
     print(f"Checking username: {test_username}")
     
-    if checker.is_username_available(test_username):
+    if checker.check_username_availability(test_username):
         print(f"{test_username} is available!")
     else:
         print(f"{test_username} is taken.")
