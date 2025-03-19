@@ -374,7 +374,8 @@ class MinecraftAuth:
                 logging.error(f"{Fore.RED}Invalid or expired Minecraft token")
                 return False
             
-            url = MINECRAFT_NAME_CHANGE_URL.format(username=new_username)
+            # Updated URL construction to avoid 404 errors
+            url = f"https://api.minecraftservices.com/minecraft/profile/name/{new_username}"
             headers = {
                 "Authorization": f"Bearer {self.minecraft_token}",
                 "Content-Type": "application/json"
@@ -402,6 +403,9 @@ class MinecraftAuth:
                 return False
             elif response.status_code == 429:
                 logging.error(f"{Fore.RED}Rate limited (429)")
+                return False
+            elif response.status_code == 404:
+                logging.error(f"{Fore.RED}API endpoint not found (404). This could be due to API changes.")
                 return False
             else:
                 logging.error(f"{Fore.RED}Unexpected response: {response.status_code}")

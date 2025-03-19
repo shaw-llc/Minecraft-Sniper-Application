@@ -256,7 +256,8 @@ class NameChecker:
         # Apply rate limiting before making request
         self._enforce_rate_limit()
         
-        url = f"{API_BASE_URL}{NAME_AVAILABILITY_ENDPOINT}".format(username=username)
+        # Updated API URL construction to avoid 404 errors
+        url = f"{API_BASE_URL}/users/profiles/minecraft/{username}"
         
         # Rotate user agent
         self._rotate_user_agent()
@@ -282,6 +283,15 @@ class NameChecker:
                     return True  # Username is available
                 elif response.status_code == 200:
                     return False  # Username exists
+                elif response.status_code == 404:
+                    # This is likely due to an API change, try the alternative endpoint
+                    alternative_url = f"https://api.minecraftservices.com/minecraft/profile/lookup/name/{username}"
+                    alt_response = self.session.get(alternative_url, proxies=proxies, timeout=PROXY_TIMEOUT)
+                    
+                    if alt_response.status_code == 200:
+                        return False  # Username exists
+                    elif alt_response.status_code == 404:
+                        return True  # Username is available
                 elif response.status_code == 429:
                     logging.warning(f"{Fore.YELLOW}Rate limit hit checking {username}. Backing off...")
                     # Exponential backoff
