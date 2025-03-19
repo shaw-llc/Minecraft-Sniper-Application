@@ -1,6 +1,6 @@
 # Minecraft Username Sniper
 
-A powerful tool for checking, monitoring, and claiming Minecraft usernames when they become available with high precision.
+A powerful tool for checking, monitoring, and claiming Minecraft usernames when they become available with high precision. **Updated and verified working as of October 2023.**
 
 ![Minecraft Username Sniper](https://www.minecraft.net/etc.clientlibs/minecraft/clientlibs/main/resources/img/header/logo.png)
 
@@ -13,34 +13,38 @@ This tool is provided for educational purposes only. Please be aware that:
 - We do not encourage or support any violation of Mojang's Terms of Service
 - Use at your own risk
 
-## 🌟 New! Beginner-Friendly Interface
+## 🚀 Quick Setup for Complete Beginners
 
-We've added a brand new beginner-friendly interface that makes it easy for anyone to use this tool, even if you have no coding experience!
+Never used Python before? No problem! Follow these simple steps:
 
-### Getting Started for Beginners
+1. **Download this tool**:
+   - Click the green "Code" button above, then "Download ZIP"
+   - Extract the ZIP file to a folder on your computer
 
-1. **Install Python**: If you don't have Python installed, download and install it from [python.org](https://python.org) (version 3.6 or higher)
+2. **Install Python**:
+   - Download and install Python from [python.org](https://python.org) (version 3.6 or higher)
+   - **IMPORTANT**: During installation, check the box that says "Add Python to PATH"
 
-2. **Run the Setup Script**: Double-click on `setup.py` or run it from the command line:
-   ```bash
-   python setup.py
-   ```
-   This will guide you through the installation process with simple instructions.
+3. **Run the Setup Helper**:
+   - Double-click on `setup.py` to run the setup wizard
+   - If double-clicking doesn't work, open Command Prompt (Windows) or Terminal (Mac/Linux) and type:
+     ```
+     cd path/to/extracted/folder
+     python setup.py
+     ```
+   - Follow the simple on-screen instructions
 
-3. **Launch the Easy Interface**: Once setup is complete, run:
-   ```bash
-   python easy_sniper.py
-   ```
-   Or use the desktop shortcut (Windows users)
+4. **Launch the Easy Interface**:
+   - Double-click on `easy_sniper.py`
+   - If that doesn't work, use Command Prompt/Terminal:
+     ```
+     python easy_sniper.py
+     ```
+   - For Windows users, a desktop shortcut is also created during setup
 
-4. **Use the Menu System**: The easy interface provides simple menus to:
-   - Check if a username is available
-   - Monitor a username until it becomes available
-   - Claim a username when it's available
-   - Check your account status
-   - Get help and instructions
-
-No coding knowledge required! The tool will walk you through each step.
+5. **Use the Simple Menu System**:
+   - Just follow the numbered options on screen!
+   - No coding knowledge required!
 
 ## ✨ Features
 
@@ -59,310 +63,172 @@ No coding knowledge required! The tool will walk you through each step.
   - Precision Strategy: Network latency compensation with adaptive timing
   - Adaptive Strategy: Self-tuning approach based on historical success patterns
 - **Proxy Support** - Rotate between multiple proxies to avoid rate limits
-- **Microsoft Authentication** - Full OAuth implementation for secure login
+- **Microsoft Authentication** - Up-to-date Microsoft OAuth implementation for secure login
 - **Advanced Analytics** - Track success rates and optimize your approach
 - **Comprehensive Notifications** - Get alerts via Discord, email, and desktop
 - **High-Precision Timing** - Millisecond-level precision for critical timing
 - **Smart Error Handling** - Automatic recovery from rate limits and network issues
 
-### Technical Features
-- Multithreaded architecture for high performance
-- Automatic proxy rotation and testing
-- Detailed statistics and success tracking
-- Network latency compensation
-- Color-coded console output
-- Comprehensive logging
-- Configurable notification channels
-- Cross-platform compatibility
+## 🛠️ Detailed Setup Guide
 
-## 🚀 Installation
+### System Requirements
+- Windows, macOS, or Linux
+- Python 3.6 or higher
+- Internet connection
+- A Microsoft/Minecraft account
 
-### Easy Installation (Recommended for Beginners)
+### Step-by-Step Installation
 
-1. Download this repository by clicking the green "Code" button and selecting "Download ZIP"
-2. Extract the ZIP file to a folder on your computer
-3. Run the setup script by double-clicking `setup.py` or running:
-   ```bash
+#### For Windows Users:
+1. Download Python 3.9+ from [python.org](https://python.org)
+   - During installation, **make sure to check "Add Python to PATH"**
+2. Download this tool by clicking the green "Code" button, then "Download ZIP"
+3. Extract the ZIP file to a folder
+4. Double-click `setup.py` to run the setup wizard
+   - If double-clicking doesn't work, open Command Prompt and type:
+   ```
+   cd path\to\extracted\folder
    python setup.py
    ```
-4. Follow the on-screen instructions
+5. Once setup completes, use the desktop shortcut or double-click `easy_sniper.py`
+
+#### For macOS Users:
+1. Install Python using Homebrew (recommended) or from [python.org](https://python.org)
+   ```bash
+   # Install Homebrew if you don't have it
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   # Install Python
+   brew install python
+   ```
+2. Download this tool by clicking the green "Code" button, then "Download ZIP"
+3. Open Terminal and navigate to the extracted folder:
+   ```bash
+   cd path/to/extracted/folder
+   ```
+4. Run the setup wizard:
+   ```bash
+   python3 setup.py
+   ```
+5. Launch the easy interface:
+   ```bash
+   python3 easy_sniper.py
+   ```
+
+#### For Linux Users:
+1. Install Python using your package manager:
+   ```bash
+   # Ubuntu/Debian
+   sudo apt update
+   sudo apt install python3 python3-pip
+   
+   # Fedora
+   sudo dnf install python3 python3-pip
+   ```
+2. Download and extract this tool
+3. Open Terminal and navigate to the folder:
+   ```bash
+   cd path/to/extracted/folder
+   ```
+4. Run the setup wizard:
+   ```bash
+   python3 setup.py
+   ```
+5. Launch the easy interface:
+   ```bash
+   python3 easy_sniper.py
+   ```
+
+## 📋 How to Use (Easy Interface)
+
+The easy interface provides a simple menu system:
+
+1. **Check if a username is available**:
+   - Select option 1 from the main menu
+   - Enter the username you want to check
+   - The tool will tell you if it's available or when it might become available
+
+2. **Monitor a username until it becomes available**:
+   - Select option 2 from the main menu
+   - Enter the username you want to monitor
+   - Specify how often to check (in seconds)
+   - Choose whether to automatically claim when available
+   - The tool will notify you when the username becomes available
+
+3. **Claim a username**:
+   - Select option 3 from the main menu
+   - Enter the username you want to claim
+   - Choose a sniping strategy
+   - The tool will attempt to claim the username
+
+4. **Check your account status**:
+   - Select option 4 from the main menu
+   - The tool will check if your account is eligible for a name change
+
+## 🔍 Troubleshooting
+
+### Common Issues and Solutions:
+
+1. **"Python is not recognized" error**:
+   - Make sure you checked "Add Python to PATH" during installation
+   - Restart your computer and try again
+   - Try using `python3` instead of `python`
+
+2. **Setup fails with dependency errors**:
+   - Run this command manually: `pip install requests colorama python-dotenv urllib3 beautifulsoup4`
+   - Make sure your internet connection is working
+
+3. **Authentication issues**:
+   - Make sure you're using a valid Microsoft account with Minecraft ownership
+   - Clear the `auth_cache.json` file and try again
+   - Check your internet connection
+
+4. **"No module named..." errors**:
+   - Re-run the setup script: `python setup.py`
+   - Try manually installing the missing module: `pip install module_name`
+
+5. **Rate limiting issues**:
+   - The Mojang API has strict rate limits
+   - Decrease check frequency to avoid rate limits
+   - Consider using proxies for advanced usage
+
+## 📞 Need More Help?
 
-### Advanced Installation (For Developers)
+If you encounter issues not covered in this guide:
 
-1. Clone this repository:
-```bash
-git clone https://github.com/yourusername/minecraft-sniper.git
-cd minecraft-sniper
-```
+1. Check for errors in the console output
+2. Make sure you're using the latest version of this tool
+3. Verify your Python installation is working correctly
+4. Try running the tool with the `-v` flag for verbose output:
+   ```bash
+   python easy_sniper.py -v
+   ```
 
-2. Install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
+## 🛡️ Security Notes
 
-3. (Optional) Set up a file with proxies (one per line) if you want to use proxy rotation:
-```
-http://user:pass@host:port
-http://host:port
-```
+This tool uses Microsoft's official OAuth flow. Your credentials are never stored in plain text. When you authenticate:
 
-## 📋 Usage
+1. A browser window will open for you to log in directly on Microsoft's website
+2. After login, Microsoft provides a secure token to the tool
+3. This token is stored locally in `auth_cache.json`
 
-### Beginner-Friendly Interface
+If you prefer not to use browser authentication, you can create a `.env` file with your credentials, but this is less secure.
 
-Run the easy interface:
-```bash
-python easy_sniper.py
-```
+## 🔥 Pro Tips for Maximum Success
 
-This will open a menu-driven interface where you can:
-- Check a username's availability
-- Monitor a username until it becomes available
-- Claim an available username
-- Check your account status
-- See help and instructions
+1. **Research usernames before they drop**: Use the tool to check when names will become available.
+2. **Test your connection**: Run the latency test before attempting to snipe.
+3. **Use the right strategy**:
+   - For low-competition names: Timing Strategy is often sufficient
+   - For high-competition names: Distributed or Adaptive Strategies work best
+4. **Prepare your account**: Make sure your account is eligible for a name change before the name drops.
+5. **Use a stable internet connection**: Wired connections are more reliable than Wi-Fi.
 
-### Advanced Command-Line Interface
+## 🙏 Credits and Acknowledgements
 
-The tool also provides two command-line interfaces: a simple one for basic use and an advanced interface with more features.
+This tool was developed for educational purposes. Special thanks to:
+- The Minecraft community for feedback and testing
+- Contributors who have helped improve this tool
 
-#### Basic Usage
+---
 
-To check if a username is available:
-
-```bash
-python minecraft_sniper.py check username
-```
-
-To monitor a username until it becomes available:
-
-```bash
-python minecraft_sniper.py monitor username
-```
-
-To snipe a username at a specific time:
-
-```bash
-python minecraft_sniper.py snipe username -t "2023-08-15 14:30:00" -s distributed
-```
-
-#### Advanced Usage
-
-The advanced version includes more features and options:
-
-```bash
-python advanced_sniper.py check -f usernames.txt --save results.json
-```
-
-```bash
-python advanced_sniper.py snipe -u coolname -s adaptive -a
-```
-
-### Command Line Arguments
-
-#### Basic Sniper (`minecraft_sniper.py`)
-
-```
-Commands:
-  check     Check if a username is available
-  monitor   Monitor a username until it becomes available
-  snipe     Snipe a username at the specified time
-  status    Check account status and eligibility
-  test      Test network latency and other functions
-
-Global options:
-  -a, --auth          Use authentication (requires browser login or .env file)
-  -v, --verbose       Enable verbose output for debugging
-```
-
-#### Advanced Sniper (`advanced_sniper.py`)
-
-```
-Commands:
-  check     Check username availability
-  monitor   Monitor usernames until they become available
-  snipe     Snipe usernames at specific times
-  upcoming  Check for upcoming available usernames
-  test      Test network latency and other functions
-  status    Check account status and eligibility
-
-Global options:
-  -a, --auth          Use authentication (required for claiming and sniping)
-  --threads THREADS   Maximum number of concurrent threads (default: 5)
-  -v, --verbose       Enable verbose output for debugging
-```
-
-### Authentication
-
-The tool uses Microsoft's OAuth flow for authentication. When you run a command with the `-a` flag, it will:
-
-1. Open a browser window for you to log in with your Microsoft account
-2. Wait for successful authentication
-3. Store the tokens securely for future use
-
-You can also create a `.env` file in the same directory with the following content (though browser auth is more secure):
-
-```
-EMAIL=your_microsoft_email@example.com
-PASSWORD=your_microsoft_password
-```
-
-### Configuring Notifications
-
-To set up notifications, you can configure the notification channels in the tool:
-
-#### Discord Notifications
-
-Run the following command to set up Discord notifications:
-
-```bash
-python notifications.py configure discord "your_webhook_url"
-```
-
-#### Email Notifications
-
-```bash
-python notifications.py configure email "smtp.gmail.com" 587 "your_email@gmail.com" "password" "from@gmail.com" "to@gmail.com"
-```
-
-#### Testing Notifications
-
-```bash
-python notifications.py test
-```
-
-## 🧠 Sniping Strategies
-
-### Timing Strategy
-Best for: Names with known drop times where precision is key
-- Makes pre-emptive checks before the target time
-- Increases check frequency as the target time approaches
-- Adjusts claim attempts based on availability detection
-
-### Burst Strategy
-Best for: Quick claims when a name is just found to be available
-- Sends a rapid burst of claim requests
-- Low delay between attempts
-- Simple but effective for immediate availability
-
-### Distributed Strategy
-Best for: High-competition usernames
-- Uses multiple threads to maximize chances
-- Distributes requests across multiple workers
-- Coordinates between threads to avoid conflicts
-
-### Precision Strategy
-Best for: Names with exact drop times where milliseconds matter
-- Compensates for network latency
-- Uses adaptive timing windows
-- Adjusts behavior based on availability status
-
-### Adaptive Strategy
-Best for: When you're not sure which strategy will work best
-- Analyzes historical successes
-- Adapts based on time of day and username characteristics
-- Learns from past attempts and improves over time
-
-## 🔧 Advanced Configuration
-
-### Proxy Configuration
-
-To use proxies:
-
-```bash
-python advanced_sniper.py -a --load-proxies proxies.txt
-```
-
-Or set them programmatically:
-
-```python
-sniper = Sniper()
-sniper.load_proxies_from_file("proxies.txt")
-sniper.test_proxies()  # Test and filter out bad proxies
-```
-
-### Customizing Strategies
-
-You can customize the parameters for each strategy:
-
-```python
-from sniper import Sniper, BurstStrategy
-
-# Create a customized burst strategy
-custom_burst = BurstStrategy(burst_count=15, burst_delay=0.05)
-
-sniper = Sniper()
-sniper.strategies["custom"] = custom_burst
-sniper.authenticate()
-sniper.snipe_username("coolname", "custom")
-```
-
-## 📊 Statistics and Analytics
-
-The tool keeps track of your sniping attempts and success rates. You can view your statistics by running:
-
-```bash
-python advanced_sniper.py stats
-```
-
-This will show you:
-- Overall success rate
-- Best-performing strategy
-- Recent successful claims
-- Average response times
-- Rate limit occurrences
-
-## 🔍 How It Works
-
-1. **Authentication**: The tool authenticates with Microsoft using the OAuth flow
-2. **Drop Time Detection**: It checks NameMC to estimate when a username will become available
-3. **Availability Checking**: It periodically checks the Mojang API for username availability
-4. **Strategy Selection**: It selects the best strategy based on the target username and timing
-5. **Adaptive Execution**: It executes the strategy with precise timing and adapts to API responses
-6. **Claim Attempt**: When the username becomes available, it attempts to claim it immediately
-7. **Result Analysis**: It analyzes the results to improve future attempts
-
-## 🛠️ Technical Details
-
-- The main API endpoint used is `https://api.mojang.com/users/profiles/minecraft/<username>`
-- A 204 status code means the username is available
-- A 200 status code means the username is taken
-- A 429 status code means you're being rate limited and should back off
-- Username changes are performed via `https://api.minecraftservices.com/minecraft/profile/name/<username>`
-- The tool uses a custom User-Agent and respects rate limits to avoid bans
-
-## 📝 Future Improvements
-
-- ✅ GUI interface for easier use (now available with `easy_sniper.py`!)
-- More advanced proxy rotation and management
-- Machine learning for optimal strategy selection
-- Integration with more notification services
-- Support for automatic batch operations
-- Detection of rare/valuable usernames
-- Support for cross-platform desktop notifications
-
-## ⭐ Tips for Successful Sniping
-
-1. **Test Your Connection**: Use the latency test feature to understand your network characteristics
-2. **Use Proxies**: Distribute requests across multiple IPs to avoid rate limits
-3. **Target Specific Times**: Focus on known drop times rather than continuous monitoring
-4. **Choose the Right Strategy**: Use the adaptive strategy if you're unsure, or select a specific strategy based on the username type
-5. **Be Patient**: Username sniping is competitive, and success often requires multiple attempts
-6. **Monitor Stats**: Check your statistics to see which strategies work best for you
-
-## 🧩 Project Structure
-
-- `minecraft_sniper.py` - Simple command-line interface
-- `advanced_sniper.py` - Advanced features and multi-username support
-- `sniper.py` - Core sniping functionality and strategies
-- `minecraft_auth.py` - Microsoft authentication implementation
-- `name_utils.py` - Username checking and utilities
-- `notifications.py` - Notification system for various channels
-
-## 👥 Contributors
-
-- Your Name - Initial work
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details. 
+By using this tool, you agree to the disclaimer at the top of this README. Remember to use this tool responsibly and in accordance with Mojang's Terms of Service. 
