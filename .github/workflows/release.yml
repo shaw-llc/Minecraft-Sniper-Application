@@ -47,14 +47,30 @@ jobs:
         npm config set python python2.7
       shell: cmd
     
-    - name: Install Dependencies (non-Linux)
+    - name: Install Dependencies (Windows)
+      if: matrix.os == 'windows-latest'
       run: |
-        rm -rf node_modules
+        if (Test-Path node_modules) {
+          Remove-Item -Recurse -Force node_modules
+        }
         npm ci
         npm install --save-dev electron@22.3.27 electron-builder@22.11.7
         npm install @babel/runtime@7.26.2 @mui/types@5.0.0 clsx@1.1.1 prop-types@15.7.2 react-is@17.0.2
         npm install @discordjs/rest@0.3.0 @discordjs/util@0.1.0 @sapphire/async-queue@1.0.0 discord-api-types@0.25.0 tslib@2.3.1 ws@7.4.6
-      
+      shell: pwsh
+    
+    - name: Install Dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        if [ -d "node_modules" ]; then
+          rm -rf node_modules
+        fi
+        npm ci
+        npm install --save-dev electron@22.3.27 electron-builder@22.11.7
+        npm install @babel/runtime@7.26.2 @mui/types@5.0.0 clsx@1.1.1 prop-types@15.7.2 react-is@17.0.2
+        npm install @discordjs/rest@0.3.0 @discordjs/util@0.1.0 @sapphire/async-queue@1.0.0 discord-api-types@0.25.0 tslib@2.3.1 ws@7.4.6
+      shell: bash
+    
     - name: Create certificates directory (Windows)
       if: matrix.os == 'windows-latest'
       run: |
