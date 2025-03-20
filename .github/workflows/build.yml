@@ -53,9 +53,9 @@ jobs:
           Remove-Item -Recurse -Force node_modules
         }
         npm ci
-        npm install --save-dev electron@25.0.0 electron-builder@25.1.8
-        npm install @babel/runtime@7.26.2 @mui/types@5.0.0 clsx@1.1.1 prop-types@15.7.2 react-is@17.0.2
-        npm install @discordjs/rest@0.3.0 @discordjs/util@0.1.0 @sapphire/async-queue@1.0.0 discord-api-types@0.25.0 tslib@2.3.1 ws@7.4.6
+        npm install --save-dev electron@^25.0.0 electron-builder@^25.0.0
+        npm install @babel/runtime@^7.22.0 @mui/types@^5.0.0 clsx@^1.1.1 prop-types@^15.7.2 react-is@^17.0.2
+        npm install @discordjs/rest@^0.3.0 @discordjs/util@^0.1.0 @sapphire/async-queue@^1.0.0 discord-api-types@^0.25.0 tslib@^2.3.1 ws@^7.4.6
       shell: pwsh
     
     - name: Install Dependencies (macOS)
@@ -65,9 +65,9 @@ jobs:
           rm -rf node_modules
         fi
         npm ci
-        npm install --save-dev electron@25.0.0 electron-builder@25.1.8
-        npm install @babel/runtime@7.26.2 @mui/types@5.0.0 clsx@1.1.1 prop-types@15.7.2 react-is@17.0.2
-        npm install @discordjs/rest@0.3.0 @discordjs/util@0.1.0 @sapphire/async-queue@1.0.0 discord-api-types@0.25.0 tslib@2.3.1 ws@7.4.6
+        npm install --save-dev electron@^25.0.0 electron-builder@^25.0.0
+        npm install @babel/runtime@^7.22.0 @mui/types@^5.0.0 clsx@^1.1.1 prop-types@^15.7.2 react-is@^17.0.2
+        npm install @discordjs/rest@^0.3.0 @discordjs/util@^0.1.0 @sapphire/async-queue@^1.0.0 discord-api-types@^0.25.0 tslib@^2.3.1 ws@^7.4.6
       shell: bash
     
     - name: Create certificates directory (Windows)
@@ -193,7 +193,7 @@ jobs:
         }
         # Build with specific flags for Windows compatibility
         Write-Output "Starting Windows build process..."
-        npx electron-builder build --win --publish never --config electron-builder.yml --verbose
+        npx electron-builder build --win --publish never --config electron-builder.yml
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -214,7 +214,7 @@ jobs:
         fi
         # Build with specific flags for macOS compatibility
         echo "Starting macOS build process..."
-        npx electron-builder build --mac --publish never --config electron-builder.yml --verbose
+        npx electron-builder build --mac --publish never --config electron-builder.yml
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
