@@ -22,10 +22,10 @@ A modern, user-friendly desktop application for checking, monitoring, and claimi
 
 Download the latest version for your platform:
 
-- [Windows (64-bit)](https://github.com/yourusername/OpenMC-Username-Sniper/releases/latest/download/OpenMC-Username-Sniper-Setup-Windows.exe)
-- [macOS](https://github.com/yourusername/OpenMC-Username-Sniper/releases/latest/download/OpenMC-Username-Sniper-macOS.dmg)
-- [Linux (deb)](https://github.com/yourusername/OpenMC-Username-Sniper/releases/latest/download/openmc-username-sniper_linux.deb)
-- [Linux (AppImage)](https://github.com/yourusername/OpenMC-Username-Sniper/releases/latest/download/openmc-username-sniper_linux.AppImage)
+- [Windows (64-bit)](https://github.com/shaw-llc/Minecraft-Sniper-Application/releases/latest/download/OpenMC-Username-Sniper-Setup-Windows.exe)
+- [macOS](https://github.com/shaw-llc/Minecraft-Sniper-Application/releases/latest/download/OpenMC-Username-Sniper-macOS.dmg)
+- [Linux (deb)](https://github.com/shaw-llc/Minecraft-Sniper-Application/releases/latest/download/openmc-username-sniper_linux.deb)
+- [Linux (AppImage)](https://github.com/shaw-llc/Minecraft-Sniper-Application/releases/latest/download/openmc-username-sniper_linux.AppImage)
 
 ## Installation Instructions
 
@@ -98,8 +98,8 @@ chmod +x openmc-username-sniper_linux.AppImage
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/OpenMC-Username-Sniper.git
-   cd OpenMC-Username-Sniper
+   git clone https://github.com/shaw-llc/Minecraft-Sniper-Application.git
+   cd Minecraft-Sniper-Application
    ```
 
 2. Run the setup script:

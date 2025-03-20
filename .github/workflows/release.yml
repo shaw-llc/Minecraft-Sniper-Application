@@ -124,6 +124,6 @@ jobs:
           - Linux (deb): openmc-username-sniper_linux.deb
           - Linux (AppImage): openmc-username-sniper_linux.AppImage
           
-          See the [README](https://github.com/yourusername/OpenMC-Username-Sniper/blob/main/README-APP.md) for installation instructions.
+          See the [README](https://github.com/shaw-llc/Minecraft-Sniper-Application/blob/master/README-APP.md) for installation instructions.
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

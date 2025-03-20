@@ -73,4 +73,4 @@ We welcome community input on our roadmap. Please submit feature requests throug
 
 ## Getting Involved
 
-If you're interested in contributing to any of these features, please check our [CONTRIBUTING.md](https://github.com/yourusername/OpenMC-Username-Sniper/blob/main/CONTRIBUTING.md) guide for instructions on how to get involved with development. 
+If you're interested in contributing to any of these features, please check our [CONTRIBUTING.md](https://github.com/shaw-llc/Minecraft-Sniper-Application/blob/master/CONTRIBUTING.md) guide for instructions on how to get involved with development. 

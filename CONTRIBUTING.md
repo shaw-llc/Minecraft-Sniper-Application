@@ -16,8 +16,8 @@ Thank you for your interest in contributing to the OpenMC Username Sniper projec
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/yourusername/OpenMC-Username-Sniper.git
-   cd OpenMC-Username-Sniper
+   git clone https://github.com/yourusername/Minecraft-Sniper-Application.git
+   cd Minecraft-Sniper-Application
    ```
 
 3. Install dependencies and set up the development environment:

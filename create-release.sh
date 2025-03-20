@@ -9,8 +9,8 @@ set -e
 
 # Configuration
 VERSION="1.0.0"
-RELEASE_BRANCH="main"
-REPO_URL="https://github.com/yourusername/OpenMC-Username-Sniper.git"
+RELEASE_BRANCH="master"
+REPO_URL="https://github.com/shaw-llc/Minecraft-Sniper-Application.git"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -63,9 +63,9 @@ git push origin "v$VERSION"
 echo -e "${GREEN}Release v$VERSION has been created and pushed to GitHub.${NC}"
 echo -e "GitHub Actions will now build and publish the release packages."
 echo -e "You can monitor the build progress at:"
-echo -e "${YELLOW}https://github.com/yourusername/OpenMC-Username-Sniper/actions${NC}"
+echo -e "${YELLOW}https://github.com/shaw-llc/Minecraft-Sniper-Application/actions${NC}"
 echo -e ""
 echo -e "Once the build is complete, you can find the release at:"
-echo -e "${YELLOW}https://github.com/yourusername/OpenMC-Username-Sniper/releases/tag/v$VERSION${NC}"
+echo -e "${YELLOW}https://github.com/shaw-llc/Minecraft-Sniper-Application/releases/tag/v$VERSION${NC}"
 echo -e ""
 echo -e "Don't forget to update the release notes on GitHub with the contents of RELEASE_NOTES.md" 

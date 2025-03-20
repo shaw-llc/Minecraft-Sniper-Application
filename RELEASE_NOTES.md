@@ -41,7 +41,7 @@ Download the appropriate installer for your platform:
 - **Linux (Debian/Ubuntu)**: openmc-username-sniper_linux.deb
 - **Linux (Other)**: openmc-username-sniper_linux.AppImage
 
-See the [README](https://github.com/yourusername/OpenMC-Username-Sniper/blob/main/README-APP.md) for detailed installation instructions.
+See the [README](https://github.com/shaw-llc/Minecraft-Sniper-Application/blob/master/README-APP.md) for detailed installation instructions.
 
 ## Known Issues
 
@@ -57,7 +57,7 @@ See the [README](https://github.com/yourusername/OpenMC-Username-Sniper/blob/mai
 
 ## Contributions
 
-This application is open source, and we welcome contributions! See [CONTRIBUTING.md](https://github.com/yourusername/OpenMC-Username-Sniper/blob/main/CONTRIBUTING.md) for details on how to get involved.
+This application is open source, and we welcome contributions! See [CONTRIBUTING.md](https://github.com/shaw-llc/Minecraft-Sniper-Application/blob/master/CONTRIBUTING.md) for details on how to get involved.
 
 ## License
 

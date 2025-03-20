@@ -21,8 +21,12 @@
     "checker",
     "monitor"
   ],
-  "author": "Your Name",
+  "author": "Shaw LLC",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shaw-llc/Minecraft-Sniper-Application.git"
+  },
   "config": {
     "forge": {
       "packagerConfig": {
@@ -43,7 +47,7 @@
           "config": {
             "name": "openmc_username_sniper",
             "setupIcon": "./assets/icon.ico",
-            "iconUrl": "https://raw.githubusercontent.com/yourusername/OpenMC-Username-Sniper/main/assets/icon.ico",
+            "iconUrl": "https://raw.githubusercontent.com/shaw-llc/Minecraft-Sniper-Application/master/assets/icon.ico",
             "loadingGif": "./assets/installer.gif"
           }
         },
@@ -90,8 +94,8 @@
           "name": "@electron-forge/publisher-github",
           "config": {
             "repository": {
-              "owner": "yourusername",
-              "name": "OpenMC-Username-Sniper"
+              "owner": "shaw-llc",
+              "name": "Minecraft-Sniper-Application"
             },
             "prerelease": false,
             "draft": true
@@ -145,8 +149,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "yourusername",
-        "repo": "OpenMC-Username-Sniper"
+        "owner": "shaw-llc",
+        "repo": "Minecraft-Sniper-Application"
       }
     ],
     "win": {
@@ -157,7 +161,7 @@
       "certificateFile": "certificates/windows-cert.pfx",
       "certificatePassword": "${env.WINDOWS_CERT_PASSWORD}",
       "verifyUpdateCodeSignature": true,
-      "publisherName": "Your Publisher Name"
+      "publisherName": "Shaw LLC"
     },
     "mac": {
       "target": [
