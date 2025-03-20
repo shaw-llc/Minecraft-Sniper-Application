@@ -43,8 +43,20 @@ jobs:
       run: npm ci
       
     - name: Create certificates directory
-      run: mkdir -p certificates || echo "Certificates directory already exists"
-      
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          # Windows-specific directory creation with PowerShell
+          if (!(Test-Path -Path "certificates")) {
+            New-Item -Path "certificates" -ItemType Directory
+          } else {
+            echo "Certificates directory already exists"
+          }
+        else
+          # Unix-style directory creation
+          mkdir -p certificates || echo "Certificates directory already exists"
+        fi
+      shell: bash
+    
     - name: Create empty certificate files for build
       run: |
         touch certificates/entitlements.plist
