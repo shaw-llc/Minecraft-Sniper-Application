@@ -14,15 +14,18 @@ import urllib.parse
 import webbrowser
 import requests
 import logging
+import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from colorama import Fore, Style
+import socket
 
 # Constants for Microsoft OAuth
-CLIENT_ID = "389b1b32-b5d5-43b2-bddc-84ce938d6737"  # Default Azure application for Minecraft
+CLIENT_ID = "1e0a5a15-02ea-472a-b765-7b3a5c5c9d09"  # Official Minecraft Launcher client ID
 REDIRECT_URI = "http://localhost:8000/auth"
 SCOPE = "XboxLive.signin offline_access"
 MICROSOFT_AUTH_URL = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize"
 MICROSOFT_TOKEN_URL = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
+MICROSOFT_DEVICE_AUTH_URL = "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode"
 XBOX_AUTH_URL = "https://user.auth.xboxlive.com/user/authenticate"
 XSTS_AUTH_URL = "https://xsts.auth.xboxlive.com/xsts/authorize"
 MINECRAFT_AUTH_URL = "https://api.minecraftservices.com/authentication/login_with_xbox"
@@ -42,28 +45,70 @@ class AuthCallbackHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
         
-        # Extract the authorization code from the URL query parameters
-        query_components = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-        
-        if 'code' in query_components:
-            self.server.auth_code = query_components['code'][0]
-            response_content = """
-            <html>
-            <head><title>Authentication Successful</title></head>
-            <body>
-                <h1>Authentication Successful!</h1>
-                <p>You can now close this window and return to the application.</p>
-                <script>window.close();</script>
-            </body>
-            </html>
-            """
-        else:
+        try:
+            # Extract the authorization code from the URL query parameters
+            parsed_path = urllib.parse.urlparse(self.path)
+            
+            # Debug the path we received
+            logging.debug(f"Received callback on path: {self.path}")
+            
+            # Handle any path to be more flexible with OAuth redirects
+            # Microsoft might redirect to root path instead of /auth in some cases
+            query_components = urllib.parse.parse_qs(parsed_path.query)
+            
+            if 'code' in query_components:
+                self.server.auth_code = query_components['code'][0]
+                response_content = """
+                <html>
+                <head><title>Authentication Successful</title></head>
+                <body>
+                    <h1>Authentication Successful!</h1>
+                    <p>You can now close this window and return to the application.</p>
+                    <script>window.close();</script>
+                </body>
+                </html>
+                """
+                logging.info(f"{Fore.GREEN}Received valid authentication code")
+            elif 'error' in query_components:
+                error = query_components['error'][0]
+                error_description = query_components.get('error_description', ['Unknown error'])[0]
+                logging.error(f"{Fore.RED}Authentication error: {error} - {error_description}")
+                self.server.auth_code = None
+                response_content = f"""
+                <html>
+                <head><title>Authentication Failed</title></head>
+                <body>
+                    <h1>Authentication Failed</h1>
+                    <p>Error: {error}</p>
+                    <p>Description: {error_description}</p>
+                    <p>Please try again.</p>
+                    <script>window.close();</script>
+                </body>
+                </html>
+                """
+            else:
+                self.server.auth_code = None
+                response_content = """
+                <html>
+                <head><title>Authentication Failed</title></head>
+                <body>
+                    <h1>Authentication Failed</h1>
+                    <p>No authorization code received.</p>
+                    <p>Please try again.</p>
+                    <script>window.close();</script>
+                </body>
+                </html>
+                """
+        except Exception as e:
+            logging.error(f"{Fore.RED}Error processing OAuth callback: {str(e)}")
             self.server.auth_code = None
-            response_content = """
+            response_content = f"""
             <html>
-            <head><title>Authentication Failed</title></head>
+            <head><title>Authentication Error</title></head>
             <body>
-                <h1>Authentication Failed</h1>
+                <h1>Authentication Error</h1>
+                <p>An error occurred while processing the authentication.</p>
+                <p>Error: {str(e)}</p>
                 <p>Please try again.</p>
                 <script>window.close();</script>
             </body>
@@ -135,14 +180,30 @@ class MinecraftAuth:
             logging.error(f"{Fore.RED}Error caching credentials: {str(e)}")
     
     def authenticate(self):
-        """Start the authentication flow"""
-        # If we have a refresh token, try using it first
+        """Authenticate with Microsoft services"""
+        # First try to use cached credentials if available
+        if self.access_token and time.time() < self.token_expires_at:
+            # Validate the token
+            if self.validate_minecraft_token():
+                current_username = self.get_current_username()
+                logging.info(f"{Fore.GREEN}Authenticated as {current_username} (using cached credentials)")
+                return True
+        
+        # Try to refresh token if we have one
         if self.refresh_token:
             if self.refresh_access_token():
                 return True
         
-        # If refresh failed or no refresh token, start new auth flow
-        return self.start_oauth_flow()
+        # Begin the OAuth flow
+        logging.info(f"{Fore.YELLOW}Most users experience issues with browser authentication. Using device code flow instead.")
+        
+        # Try device code flow first since it's more reliable
+        if self._try_device_code_flow():
+            return True
+            
+        # Fall back to browser flow if device code fails
+        logging.info(f"{Fore.YELLOW}Device code flow failed. Trying browser authentication as a fallback...")
+        return self._try_oauth_browser_flow()
     
     def refresh_access_token(self):
         """Refresh the access token using the refresh token"""
@@ -150,8 +211,7 @@ class MinecraftAuth:
             payload = {
                 "client_id": CLIENT_ID,
                 "refresh_token": self.refresh_token,
-                "grant_type": "refresh_token",
-                "redirect_uri": REDIRECT_URI
+                "grant_type": "refresh_token"
             }
             
             response = requests.post(MICROSOFT_TOKEN_URL, data=payload)
@@ -175,8 +235,8 @@ class MinecraftAuth:
             logging.error(f"{Fore.RED}Error refreshing token: {str(e)}")
             return False
     
-    def start_oauth_flow(self):
-        """Start the OAuth flow by opening a browser for Microsoft login"""
+    def _try_oauth_browser_flow(self):
+        """Attempt the standard OAuth browser flow"""
         # Generate the authorization URL
         params = {
             "client_id": CLIENT_ID,
@@ -189,22 +249,62 @@ class MinecraftAuth:
         auth_url = f"{MICROSOFT_AUTH_URL}?{urllib.parse.urlencode(params)}"
         
         # Start a local server to handle the callback
-        server = HTTPServer(("localhost", 8000), AuthCallbackHandler)
-        server.auth_code = None
-        
-        # Open the browser for the user to authenticate
-        logging.info(f"{Fore.CYAN}Opening browser for Microsoft authentication...")
-        webbrowser.open(auth_url)
-        
-        # Wait for the callback
-        logging.info(f"{Fore.YELLOW}Waiting for authentication...")
-        server.timeout = 300  # 5 minutes timeout
-        server.handle_request()
-        
-        # Check if we got an auth code
-        if not server.auth_code:
-            logging.error(f"{Fore.RED}Authentication failed or timed out")
-            return False
+        server = None
+        try:
+            # Bind to all interfaces (0.0.0.0) instead of just localhost
+            # This helps with certain networking setups
+            server = HTTPServer(("0.0.0.0", 8000), AuthCallbackHandler)
+            server.auth_code = None
+            
+            # Configure socket to allow address reuse
+            server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            
+            # Open the browser for the user to authenticate
+            logging.info(f"{Fore.CYAN}Opening browser for Microsoft authentication...")
+            webbrowser.open(auth_url)
+            
+            # Wait for the callback
+            logging.info(f"{Fore.YELLOW}Waiting for authentication. Browser window should open automatically...")
+            logging.info(f"{Fore.YELLOW}If no browser opens, please manually visit: {auth_url}")
+            server.timeout = 300  # 5 minutes timeout
+            server.handle_request()
+            
+            # Check if we got an auth code
+            if not server.auth_code:
+                logging.error(f"{Fore.RED}Authentication failed or timed out")
+                return False
+        except Exception as e:
+            logging.error(f"{Fore.RED}Error with authentication server: {str(e)}")
+            logging.info(f"{Fore.YELLOW}Please make sure port 8000 is available and not blocked by firewall.")
+            
+            # Provide fallback instructions
+            logging.info(f"{Fore.YELLOW}Alternative authentication method:")
+            logging.info(f"{Fore.YELLOW}1. Open this URL in your browser: {auth_url}")
+            logging.info(f"{Fore.YELLOW}2. Complete the authentication")
+            logging.info(f"{Fore.YELLOW}3. You will be redirected to a URL starting with 'http://localhost:8000/auth?code='")
+            logging.info(f"{Fore.YELLOW}4. Copy the entire URL from your browser address bar")
+            
+            manual_url = input(f"{Fore.CYAN}Paste the redirect URL here (or press Enter to cancel): {Style.RESET_ALL}")
+            if manual_url:
+                # Extract code from manually entered URL
+                try:
+                    parsed_url = urllib.parse.urlparse(manual_url)
+                    query_params = urllib.parse.parse_qs(parsed_url.query)
+                    if 'code' in query_params:
+                        server = type('obj', (object,), {'auth_code': query_params['code'][0]})
+                        logging.info(f"{Fore.GREEN}Manual authentication code accepted")
+                    else:
+                        logging.error(f"{Fore.RED}No authentication code found in the URL")
+                        return False
+                except Exception as e:
+                    logging.error(f"{Fore.RED}Error parsing manual URL: {str(e)}")
+                    return False
+            else:
+                return False
+        finally:
+            # Clean up server if it was created
+            if server and hasattr(server, 'server_close'):
+                server.server_close()
         
         # Exchange the auth code for tokens
         payload = {
@@ -226,12 +326,117 @@ class MinecraftAuth:
             return self.authenticate_with_minecraft()
         else:
             logging.error(f"{Fore.RED}Failed to get access token: {response.status_code}")
+            try:
+                error_data = response.json()
+                logging.error(f"{Fore.RED}Error: {error_data.get('error')}")
+                logging.error(f"{Fore.RED}Description: {error_data.get('error_description')}")
+            except:
+                logging.error(f"{Fore.RED}Response: {response.text}")
+            return False
+    
+    def _try_device_code_flow(self):
+        """Authenticate using the device code flow (no browser required)"""
+        try:
+            # Step 1: Request device code
+            payload = {
+                "client_id": CLIENT_ID,
+                "scope": SCOPE
+            }
+            
+            response = requests.post(MICROSOFT_DEVICE_AUTH_URL, data=payload)
+            
+            if response.status_code != 200:
+                logging.error(f"{Fore.RED}Failed to start device code flow: {response.status_code}")
+                return False
+            
+            data = response.json()
+            user_code = data.get("user_code")
+            device_code = data.get("device_code")
+            verification_uri = data.get("verification_uri")
+            expires_in = int(data.get("expires_in", 900))
+            interval = int(data.get("interval", 5))
+            
+            # Step 2: Display clear instructions for the user
+            print("\n" + "="*60)
+            print(f"{Fore.GREEN}MICROSOFT AUTHENTICATION INSTRUCTIONS")
+            print("="*60)
+            print(f"{Fore.CYAN}1. Open {Fore.YELLOW}{verification_uri}{Fore.CYAN} in your web browser")
+            print(f"   (or go to 'device.microsoft.com')")
+            print(f"{Fore.CYAN}2. Enter this code when prompted: {Fore.YELLOW}{user_code}")
+            print(f"{Fore.CYAN}3. Sign in with your Microsoft account")
+            print(f"{Fore.CYAN}4. Approve the authentication request")
+            print(f"{Fore.CYAN}5. Return here and wait for the process to complete")
+            print("="*60 + "\n")
+            
+            logging.info(f"{Fore.CYAN}Waiting for you to complete the authentication...")
+            
+            # Step 3: Poll for token
+            start_time = time.time()
+            # Show a simple progress indicator
+            print(f"{Fore.CYAN}Waiting for authentication: ", end="", flush=True)
+            dots = 0
+            
+            while time.time() - start_time < expires_in:
+                # Wait before polling
+                for _ in range(interval):
+                    time.sleep(1)
+                    dots = (dots + 1) % 4
+                    print(f"\r{Fore.CYAN}Waiting for authentication: {'.' * dots}{' ' * (3 - dots)}", end="", flush=True)
+                
+                # Check if the user has completed the flow
+                token_payload = {
+                    "client_id": CLIENT_ID,
+                    "device_code": device_code,
+                    "grant_type": "urn:ietf:params:oauth:grant-type:device_code"
+                }
+                
+                token_response = requests.post(MICROSOFT_TOKEN_URL, data=token_payload)
+                
+                if token_response.status_code == 200:
+                    # Success
+                    print(f"\r{Fore.GREEN}Authentication successful! ✓                  ")
+                    token_data = token_response.json()
+                    self.access_token = token_data.get("access_token")
+                    self.refresh_token = token_data.get("refresh_token")
+                    self.token_expires_at = time.time() + token_data.get("expires_in", 3600)
+                    
+                    # Authenticate with Xbox and Minecraft
+                    return self.authenticate_with_minecraft()
+                elif token_response.status_code == 400:
+                    # Check the error
+                    error_data = token_response.json()
+                    error = error_data.get("error")
+                    
+                    if error == "authorization_pending":
+                        # Still waiting for the user
+                        continue
+                    elif error == "expired_token":
+                        print(f"\r{Fore.RED}The device code has expired. Please try again. ✗               ")
+                        logging.error(f"{Fore.RED}The device code has expired. Please try again.")
+                        return False
+                    else:
+                        print(f"\r{Fore.RED}Error during authentication: {error} ✗               ")
+                        logging.error(f"{Fore.RED}Error during polling: {error}")
+                        return False
+                else:
+                    print(f"\r{Fore.RED}Unexpected response during authentication: {token_response.status_code} ✗               ")
+                    logging.error(f"{Fore.RED}Unexpected response during polling: {token_response.status_code}")
+                    return False
+            
+            print(f"\r{Fore.RED}Authentication timed out. Please try again. ✗               ")
+            logging.error(f"{Fore.RED}Timeout waiting for device code authentication")
+            return False
+            
+        except Exception as e:
+            print(f"\r{Fore.RED}Error during authentication: {str(e)} ✗               ")
+            logging.error(f"{Fore.RED}Error in device code flow: {str(e)}")
             return False
     
     def authenticate_with_minecraft(self):
         """Authenticate with Xbox Live and Minecraft services"""
         try:
             # Step 1: Authenticate with Xbox Live
+            logging.info(f"{Fore.CYAN}Authenticating with Xbox Live...")
             xbox_response = requests.post(
                 XBOX_AUTH_URL,
                 json={
@@ -255,6 +460,7 @@ class MinecraftAuth:
             user_hash = xbox_data.get("DisplayClaims", {}).get("xui", [{}])[0].get("uhs")
             
             # Step 2: Get XSTS token
+            logging.info(f"{Fore.CYAN}Getting XSTS token...")
             xsts_response = requests.post(
                 XSTS_AUTH_URL,
                 json={
@@ -276,6 +482,7 @@ class MinecraftAuth:
             xsts_token = xsts_data.get("Token")
             
             # Step 3: Authenticate with Minecraft
+            logging.info(f"{Fore.CYAN}Authenticating with Minecraft services...")
             minecraft_response = requests.post(
                 MINECRAFT_AUTH_URL,
                 json={
@@ -295,7 +502,25 @@ class MinecraftAuth:
             self._save_cached_credentials()
             
             # Get and store profile info
-            self.get_profile()
+            profile = self.get_profile()
+            
+            # Display success messages with profile information
+            print("\n" + "="*60)
+            print(f"{Fore.GREEN}AUTHENTICATION SUCCESSFUL!")
+            print("="*60)
+            
+            if profile and profile.get("name"):
+                print(f"{Fore.CYAN}Logged in as: {Fore.YELLOW}{profile.get('name')}")
+                
+                if profile.get("id"):
+                    print(f"{Fore.CYAN}UUID: {Fore.WHITE}{profile.get('id')}")
+                
+                # Check if name change is eligible
+                eligible = self.is_eligible_for_name_change()
+                eligibility_status = f"{Fore.GREEN}Available" if eligible else f"{Fore.RED}Not Available"
+                print(f"{Fore.CYAN}Name Change Status: {eligibility_status}")
+            
+            print("="*60 + "\n")
             
             logging.info(f"{Fore.GREEN}Authentication successful!")
             return True

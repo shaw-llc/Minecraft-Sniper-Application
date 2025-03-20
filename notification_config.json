@@ -1,0 +1,27 @@
+{
+    "discord": {
+        "enabled": false,
+        "webhook_url": "",
+        "username": "Minecraft Sniper",
+        "avatar_url": "https://www.minecraft.net/etc.clientlibs/minecraft/clientlibs/main/resources/img/minecraft-logo.png"
+    },
+    "email": {
+        "enabled": false,
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": 587,
+        "smtp_username": "",
+        "smtp_password": "",
+        "from_email": "",
+        "to_email": ""
+    },
+    "desktop": {
+        "enabled": true
+    },
+    "events": {
+        "username_available": true,
+        "username_claimed": true,
+        "drop_time_found": true,
+        "authentication_success": true,
+        "error": true
+    }
+}

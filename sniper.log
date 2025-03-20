@@ -1,0 +1,25 @@
+2025-03-19 19:05:42,553 - INFO - [36mChecking if username 'testusername' is available...
+2025-03-19 19:05:48,212 - INFO - [36mTesting network latency to Mojang API...
+2025-03-19 19:05:48,212 - WARNING - Request 1/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:48,716 - WARNING - Request 2/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:49,220 - WARNING - Request 3/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:49,726 - WARNING - Request 4/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:50,231 - WARNING - Request 5/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:50,732 - WARNING - Request 6/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:51,233 - WARNING - Request 7/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:51,739 - WARNING - Request 8/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:52,241 - WARNING - Request 9/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:52,747 - WARNING - Request 10/10: Failed with error: name 'API_BASE_URL' is not defined
+2025-03-19 19:05:53,252 - ERROR - [31mNo valid latency measurements obtained
+2025-03-19 19:05:57,592 - INFO - [36mStarting to monitor username 'randomusername123'...
+2025-03-19 19:05:57,592 - INFO - [36mPress Ctrl+C to stop monitoring
+2025-03-19 19:05:57,592 - INFO - [36mStarting to monitor username: randomusername123
+2025-03-19 19:06:22,176 - INFO - [36mChecking if username 'randomusername123456789' is available...
+2025-03-19 19:06:27,133 - INFO - [31m[19:06:27] Username randomusername123 is taken. (Check #10, elapsed: 29.5s)
+2025-03-19 19:06:59,303 - INFO - [31m[19:06:59] Username randomusername123 is taken. (Check #20, elapsed: 61.7s)
+2025-03-19 19:07:31,262 - INFO - [31m[19:07:31] Username randomusername123 is taken. (Check #30, elapsed: 93.7s)
+2025-03-19 19:10:01,511 - INFO - [36mChecking if username 'example' is available...
+2025-03-19 19:10:08,345 - INFO - [36mStarting to monitor username 'example'...
+2025-03-19 19:10:08,345 - INFO - [36mPress Ctrl+C to stop monitoring
+2025-03-19 19:10:08,345 - INFO - [36mStarting to monitor username: example
+2025-03-19 19:10:57,126 - INFO - [31m[19:10:57] Username example is taken. (Check #10, elapsed: 48.8s)

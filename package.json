@@ -1,0 +1,185 @@
+{
+  "name": "openmc-username-sniper",
+  "productName": "OpenMC Username Sniper",
+  "version": "1.0.0",
+  "description": "A desktop application for checking, monitoring, and claiming available Minecraft usernames",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "vite",
+    "build": "vite build",
+    "copy-python": "node copy_python_files.js",
+    "package": "npm run build && electron-forge package",
+    "make": "npm run build && electron-forge make",
+    "publish": "npm run build && electron-forge publish",
+    "setup": "npm install && npm run copy-python"
+  },
+  "keywords": [
+    "minecraft",
+    "username",
+    "sniper",
+    "checker",
+    "monitor"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "asar": true,
+        "icon": "./assets/icon",
+        "extraResource": [
+          "./src/python"
+        ],
+        "appBundleId": "com.openmc.usernameSniper",
+        "appCategoryType": "public.app-category.utilities",
+        "osxSign": {
+          "identity": null
+        }
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "openmc_username_sniper",
+            "setupIcon": "./assets/icon.ico",
+            "iconUrl": "https://raw.githubusercontent.com/yourusername/OpenMC-Username-Sniper/main/assets/icon.ico",
+            "loadingGif": "./assets/installer.gif"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-dmg",
+          "config": {
+            "format": "ULFO",
+            "icon": "./assets/icon.icns",
+            "background": "./assets/dmg-background.png",
+            "window": {
+              "width": 540,
+              "height": 380
+            }
+          }
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {
+            "options": {
+              "icon": "./assets/icon.png",
+              "categories": [
+                "Utility"
+              ]
+            }
+          }
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {
+            "options": {
+              "icon": "./assets/icon.png"
+            }
+          }
+        }
+      ],
+      "publishers": [
+        {
+          "name": "@electron-forge/publisher-github",
+          "config": {
+            "repository": {
+              "owner": "yourusername",
+              "name": "OpenMC-Username-Sniper"
+            },
+            "prerelease": false,
+            "draft": true
+          }
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.13.0",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/x-date-pickers": "^6.5.0",
+    "date-fns": "^2.30.0",
+    "python-shell": "^5.0.0",
+    "electron-store": "^8.1.0",
+    "axios": "^1.4.0",
+    "nodemailer": "^6.9.3",
+    "discord.js": "^14.11.0",
+    "electron-updater": "^6.1.1",
+    "electron-log": "^4.4.8"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.1.1",
+    "@electron-forge/maker-deb": "^6.1.1",
+    "@electron-forge/maker-rpm": "^6.1.1",
+    "@electron-forge/maker-squirrel": "^6.1.1",
+    "@electron-forge/maker-zip": "^6.1.1",
+    "@electron-forge/publisher-github": "^6.1.1",
+    "@electron/notarize": "^2.1.0",
+    "electron": "^25.0.0",
+    "vite": "^4.3.9",
+    "@vitejs/plugin-react": "^4.0.0"
+  },
+  "build": {
+    "appId": "com.openmc.usernameSniper",
+    "productName": "OpenMC Username Sniper",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "src/main/**/*",
+      "src/python/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "yourusername",
+        "repo": "OpenMC-Username-Sniper"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico",
+      "certificateFile": "certificates/windows-cert.pfx",
+      "certificatePassword": "${env.WINDOWS_CERT_PASSWORD}",
+      "verifyUpdateCodeSignature": true,
+      "publisherName": "Your Publisher Name"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "assets/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "certificates/entitlements.plist",
+      "entitlementsInherit": "certificates/entitlements.plist",
+      "notarize": {
+        "teamId": "${env.APPLE_TEAM_ID}"
+      }
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "assets/icon.png",
+      "category": "Utility"
+    },
+    "afterSign": "certificates/notarize.js"
+  }
+} 
