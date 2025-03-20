@@ -23,8 +23,13 @@ jobs:
         node-version: 16.x
         cache: 'npm'
     
-    - name: Install Dependencies
+    - name: Install Dependencies (non-Linux)
+      if: runner.os != 'Linux'
       run: npm ci
+      
+    - name: Install Dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: npm install
     
     - name: Create certificates directory
       run: mkdir -p certificates
@@ -34,6 +39,10 @@ jobs:
         touch certificates/entitlements.plist
         echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict></dict></plist>' > certificates/entitlements.plist
         echo 'module.exports = async function (params) { console.log("Notarization skipped"); };' > certificates/notarize.js
+    
+    - name: Set permissions for app-builder
+      if: runner.os == 'Linux'
+      run: chmod +x node_modules/app-builder-bin/linux/x64/app-builder
     
     - name: Build for current platform
       run: |
