@@ -21,7 +21,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 18.x
         cache: 'npm'
     
     - name: Install Dependencies (non-Linux)
@@ -47,19 +47,31 @@ jobs:
     
     - name: Build for Windows
       if: matrix.os == 'windows-latest'
-      run: npx electron-builder build --win --publish never
+      run: |
+        echo "Starting Windows build..."
+        # Ensure Windows build tools are properly set up
+        npm config set msvs_version 2019
+        # Build with specific flags for Windows compatibility
+        npx electron-builder build --win --publish never || (echo "Windows build failed, retrying with debug info..." && DEBUG=electron-builder npx electron-builder build --win --publish never)
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Build for macOS
       if: matrix.os == 'macos-latest'
-      run: npx electron-builder build --mac --publish never
+      run: |
+        echo "Starting macOS build..."
+        # Ensure macOS build tools are properly set up
+        export CSC_IDENTITY_AUTO_DISCOVERY=false
+        # Build with specific flags for macOS compatibility
+        npx electron-builder build --mac --publish never || (echo "macOS build failed, retrying with debug info..." && DEBUG=electron-builder npx electron-builder build --mac --publish never)
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Build for Linux
       if: matrix.os == 'ubuntu-latest'
-      run: npx electron-builder build --linux --publish never
+      run: |
+        echo "Starting Linux build..."
+        npx electron-builder build --linux --publish never || (echo "Linux build failed, retrying..." && npx electron-builder build --linux --publish never)
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
