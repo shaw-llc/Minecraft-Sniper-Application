@@ -148,18 +148,17 @@ jobs:
       run: |
         echo "Starting Windows build..."
         # Clean up problematic directories that might cause permission issues
-        rm -rf ./node_modules/.cache || echo "Failed to remove cache directory, continuing anyway"
+        if (Test-Path "./node_modules/.cache") {
+          Remove-Item -Recurse -Force "./node_modules/.cache"
+        } else {
+          Write-Output "Cache directory not found, continuing anyway"
+        }
         # Add detailed debugging for Windows build
-        echo "Setting DEBUG environment variables..."
-        export DEBUG=electron-builder,electron-builder:*
+        $env:DEBUG = "electron-builder,electron-builder:*"
         # Build with specific flags for Windows compatibility
         npx electron-builder --version
-        npx electron-builder build --win --publish never || (
-          echo "Windows build failed. Trying again with more debug info..."
-          set -x  # Enable verbose mode
-          export DEBUG=electron-builder,electron-builder:*,electron-builder-lib:*
-          npx electron-builder build --win --publish never
-        )
+        npx electron-builder build --win --publish never
+      shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
@@ -170,7 +169,8 @@ jobs:
         # Ensure macOS build tools are properly set up
         export CSC_IDENTITY_AUTO_DISCOVERY=false
         # Build with specific flags for macOS compatibility
-        npx electron-builder build --mac --publish never || (echo "macOS build failed, retrying with debug info..." && DEBUG=electron-builder npx electron-builder build --mac --publish never)
+        npx electron-builder build --mac --publish never
+      shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
