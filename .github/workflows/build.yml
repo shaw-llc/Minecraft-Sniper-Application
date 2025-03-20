@@ -38,11 +38,21 @@ jobs:
         }
       shell: pwsh
     
+    - name: Install Windows Build Tools (Windows only)
+      if: runner.os == 'Windows'
+      run: |
+        echo "Installing Windows build tools..."
+        npm config set msvs_version 2019
+        npm config set python python2.7
+      shell: cmd
+    
     - name: Install Dependencies (non-Linux)
       run: |
+        rm -rf node_modules
         npm ci
-        npm install --save-dev electron@latest electron-builder@latest
-        npm install @discordjs/rest @discordjs/util @sapphire/async-queue @vladfrangu/async_event_emitter discord-api-types tslib ws p-try
+        npm install --save-dev electron@22.3.27 electron-builder@22.11.7
+        npm install @babel/runtime@7.26.2 @mui/types@5.0.0 clsx@1.1.1 prop-types@15.7.2 react-is@17.0.2
+        npm install @discordjs/rest@0.3.0 @discordjs/util@0.1.0 @sapphire/async-queue@1.0.0 discord-api-types@0.25.0 tslib@2.3.1 ws@7.4.6
       
     - name: Create certificates directory (Windows)
       if: runner.os == 'Windows'
@@ -99,6 +109,23 @@ jobs:
         }
       shell: pwsh
     
+    - name: Verify build environment (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        Write-Output "Node.js version:"
+        node -v
+        Write-Output "NPM version:"
+        npm -v
+        Write-Output "Electron version:"
+        npx electron -v
+        Write-Output "Electron Builder version:"
+        npx electron-builder -v
+        Write-Output "Looking for app-builder.exe..."
+        Get-ChildItem -Path node_modules -Include app-builder.exe -Recurse | ForEach-Object {
+          Write-Output "Found: $($_.FullName)"
+        }
+      shell: pwsh
+    
     - name: Build for current platform
       run: |
         echo "Starting build for $RUNNER_OS..."
@@ -110,7 +137,12 @@ jobs:
           export DEBUG=electron-builder,electron-builder:*
           # Build with specific flags for Windows compatibility
           npx electron-builder --version
-          npx electron-builder build --win --publish never
+          npx electron-builder build --win --publish never || (
+            echo "Windows build failed. Trying again with more debug info..."
+            set -x  # Enable verbose mode
+            export DEBUG=electron-builder,electron-builder:*,electron-builder-lib:*
+            npx electron-builder build --win --publish never
+          )
         elif [ "$RUNNER_OS" == "macOS" ]; then
           # Ensure macOS build tools are properly set up
           export CSC_IDENTITY_AUTO_DISCOVERY=false
