@@ -56,18 +56,27 @@ jobs:
       run: mkdir -p certificates || echo "Certificates directory already exists"
       shell: bash
     
-    - name: Create empty certificate files for build
+    - name: Create empty certificate files for build (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        New-Item -Path "certificates/entitlements.plist" -ItemType File -Force
+        Set-Content -Path "certificates/entitlements.plist" -Value '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict></dict></plist>'
+        New-Item -Path "certificates/notarize.js" -ItemType File -Force
+        Set-Content -Path "certificates/notarize.js" -Value 'module.exports = async function (params) { console.log("Notarization skipped"); };'
+      shell: pwsh
+    
+    - name: Create empty certificate files for build (non-Windows)
+      if: runner.os != 'Windows'
       run: |
         touch certificates/entitlements.plist
         echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict></dict></plist>' > certificates/entitlements.plist
         echo 'module.exports = async function (params) { console.log("Notarization skipped"); };' > certificates/notarize.js
+      shell: bash
     
     - name: Build for current platform
       run: |
         echo "Starting build for $RUNNER_OS..."
         if [ "$RUNNER_OS" == "Windows" ]; then
-          # Ensure Windows build tools are properly set up
-          npm config set msvs_version 2019
           # Clean up problematic directories that might cause permission issues
           rm -rf ./node_modules/.cache || echo "Failed to remove cache directory, continuing anyway"
           # Build with specific flags for Windows compatibility
