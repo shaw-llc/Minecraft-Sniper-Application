@@ -97,7 +97,7 @@
             "name": "Minecraft-Sniper-Application"
           },
           "prerelease": false,
-          "draft": true
+          "draft": false
         }
       }
     ]
@@ -154,7 +154,8 @@
       {
         "provider": "github",
         "owner": "shaw-llc",
-        "repo": "Minecraft-Sniper-Application"
+        "repo": "Minecraft-Sniper-Application",
+        "releaseType": "release"
       }
     ],
     "win": {
