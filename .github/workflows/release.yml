@@ -43,7 +43,6 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         echo "Installing Windows build tools..."
-        npm config set msvs_version 2019
         npm config set python python2.7
       shell: cmd
     
@@ -55,7 +54,7 @@ jobs:
         }
         npm ci
         npm install --save-dev electron@^25.0.0 electron-builder@^25.0.0
-        npm install @babel/runtime@^7.22.0 @mui/types@5.1.0 clsx@^1.1.1 prop-types@^15.7.2 react-is@^17.0.2
+        npm install @babel/runtime@^7.22.0 @mui/types@5.4.0 clsx@^1.1.1 prop-types@^15.7.2 react-is@^17.0.2
         npm install @discordjs/rest@^0.3.0 @discordjs/util@^0.1.0 @sapphire/async-queue@^1.0.0 discord-api-types@^0.25.0 tslib@^2.3.1 ws@^7.4.6
       shell: pwsh
     
@@ -67,7 +66,7 @@ jobs:
         fi
         npm ci
         npm install --save-dev electron@^25.0.0 electron-builder@^25.0.0
-        npm install @babel/runtime@^7.22.0 @mui/types@5.1.0 clsx@^1.1.1 prop-types@^15.7.2 react-is@^17.0.2
+        npm install @babel/runtime@^7.22.0 @mui/types@5.4.0 clsx@^1.1.1 prop-types@^15.7.2 react-is@^17.0.2
         npm install @discordjs/rest@^0.3.0 @discordjs/util@^0.1.0 @sapphire/async-queue@^1.0.0 discord-api-types@^0.25.0 tslib@^2.3.1 ws@^7.4.6
       shell: bash
     
