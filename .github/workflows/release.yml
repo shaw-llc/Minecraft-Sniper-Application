@@ -23,7 +23,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 18.x
+        node-version: 16.x
         cache: 'npm'
     
     - name: Fix Windows Permissions (Windows only)
@@ -40,7 +40,10 @@ jobs:
       shell: pwsh
     
     - name: Install Dependencies (non-Linux)
-      run: npm ci
+      run: |
+        npm ci
+        npm install --save-dev electron@latest electron-builder@latest
+        npm install @discordjs/rest @discordjs/util @sapphire/async-queue @vladfrangu/async_event_emitter discord-api-types tslib ws p-try
       
     - name: Create certificates directory (Windows)
       if: matrix.os == 'windows-latest'
@@ -74,14 +77,41 @@ jobs:
         echo 'module.exports = async function (params) { console.log("Notarization skipped"); };' > certificates/notarize.js
       shell: bash
     
+    - name: Set app-builder permissions (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        if (Test-Path node_modules/app-builder-bin/win/x64/app-builder.exe) {
+          # Set execution permissions for app-builder.exe
+          Write-Output "Setting permissions for app-builder.exe..."
+          $acl = Get-Acl -Path node_modules/app-builder-bin/win/x64/app-builder.exe
+          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("EVERYONE","FullControl","Allow")
+          $acl.SetAccessRule($accessRule)
+          Set-Acl -Path node_modules/app-builder-bin/win/x64/app-builder.exe -AclObject $acl
+        } else {
+          Write-Output "app-builder.exe not found at expected path"
+          # Search for app-builder.exe
+          Get-ChildItem -Path node_modules -Filter app-builder.exe -Recurse | ForEach-Object {
+            Write-Output "Found app-builder at: $($_.FullName)"
+            $acl = Get-Acl -Path $_.FullName
+            $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("EVERYONE","FullControl","Allow")
+            $acl.SetAccessRule($accessRule)
+            Set-Acl -Path $_.FullName -AclObject $acl
+          }
+        }
+      shell: pwsh
+    
     - name: Build for Windows
       if: matrix.os == 'windows-latest'
       run: |
         echo "Starting Windows build..."
         # Clean up problematic directories that might cause permission issues
         rm -rf ./node_modules/.cache || echo "Failed to remove cache directory, continuing anyway"
+        # Add detailed debugging for Windows build
+        echo "Setting DEBUG environment variables..."
+        export DEBUG=electron-builder,electron-builder:*
         # Build with specific flags for Windows compatibility
-        npx electron-builder build --win --publish never || (echo "Windows build failed, retrying with debug info..." && DEBUG=electron-builder npx electron-builder build --win --publish never)
+        npx electron-builder --version
+        npx electron-builder build --win --publish never
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
