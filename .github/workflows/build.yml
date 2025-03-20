@@ -41,19 +41,19 @@ jobs:
     - name: Install Dependencies (non-Linux)
       run: npm ci
       
-    - name: Create certificates directory
+    - name: Create certificates directory (Windows)
+      if: runner.os == 'Windows'
       run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          # Windows-specific directory creation with PowerShell
-          if (!(Test-Path -Path "certificates")) {
-            New-Item -Path "certificates" -ItemType Directory
-          } else {
-            echo "Certificates directory already exists"
-          }
-        else
-          # Unix-style directory creation
-          mkdir -p certificates || echo "Certificates directory already exists"
-        fi
+        if (!(Test-Path -Path "certificates")) {
+          New-Item -Path "certificates" -ItemType Directory
+        } else {
+          Write-Output "Certificates directory already exists"
+        }
+      shell: pwsh
+    
+    - name: Create certificates directory (non-Windows)
+      if: runner.os != 'Windows'
+      run: mkdir -p certificates || echo "Certificates directory already exists"
       shell: bash
     
     - name: Create empty certificate files for build
