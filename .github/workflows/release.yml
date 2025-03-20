@@ -54,7 +54,7 @@ jobs:
           Remove-Item -Recurse -Force node_modules
         }
         npm ci
-        npm install --save-dev electron@22.3.27 electron-builder@25.1.8
+        npm install --save-dev electron@25.0.0 electron-builder@25.1.8
         npm install @babel/runtime@7.26.2 @mui/types@5.0.0 clsx@1.1.1 prop-types@15.7.2 react-is@17.0.2
         npm install @discordjs/rest@0.3.0 @discordjs/util@0.1.0 @sapphire/async-queue@1.0.0 discord-api-types@0.25.0 tslib@2.3.1 ws@7.4.6
       shell: pwsh
@@ -66,7 +66,7 @@ jobs:
           rm -rf node_modules
         fi
         npm ci
-        npm install --save-dev electron@22.3.27 electron-builder@25.1.8
+        npm install --save-dev electron@25.0.0 electron-builder@25.1.8
         npm install @babel/runtime@7.26.2 @mui/types@5.0.0 clsx@1.1.1 prop-types@15.7.2 react-is@17.0.2
         npm install @discordjs/rest@0.3.0 @discordjs/util@0.1.0 @sapphire/async-queue@1.0.0 discord-api-types@0.25.0 tslib@2.3.1 ws@7.4.6
       shell: bash
@@ -134,12 +134,17 @@ jobs:
         Write-Output "NPM version:"
         npm -v
         Write-Output "Electron version:"
-        npx electron -v
-        Write-Output "Electron Builder version:"
-        npx electron-builder -v
+        npx --no-install electron -v || Write-Output "Failed to get electron version, but continuing anyway"
+        Write-Output "Electron Builder info:"
+        npx --no-install electron-builder --help || Write-Output "Failed to get electron-builder help, but continuing anyway"
         Write-Output "Looking for app-builder.exe..."
-        Get-ChildItem -Path node_modules -Include app-builder.exe -Recurse | ForEach-Object {
-          Write-Output "Found: $($_.FullName)"
+        $appBuilderPaths = Get-ChildItem -Path node_modules -Include app-builder.exe -Recurse -ErrorAction SilentlyContinue
+        if ($appBuilderPaths.Count -gt 0) {
+          foreach ($appBuilderPath in $appBuilderPaths) {
+            Write-Output "Found: $($appBuilderPath.FullName)"
+          }
+        } else {
+          Write-Output "app-builder.exe not found, will attempt to continue anyway"
         }
       shell: pwsh
     
@@ -176,11 +181,20 @@ jobs:
         # Add detailed debugging for Windows build
         $env:DEBUG = "electron-builder,electron-builder:*"
         # Check versions separately to avoid argument confusion
-        Write-Output "Electron Builder version:"
-        npx electron-builder --version
+        Write-Output "Electron Builder version check:"
+        npx --no-install electron-builder --version || Write-Output "Failed to get version but continuing"
+        # List files in dist directory
+        Write-Output "Contents of dist directory:"
+        if (Test-Path "dist") {
+          Get-ChildItem -Path "dist" -Recurse -Depth 1 | ForEach-Object {
+            Write-Output $_.FullName
+          }
+        } else {
+          Write-Output "dist directory not found!"
+        }
         # Build with specific flags for Windows compatibility
         Write-Output "Starting Windows build process..."
-        npx electron-builder build --win --publish never --config electron-builder.yml
+        npx electron-builder build --win --publish never --config electron-builder.yml --verbose
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -191,8 +205,17 @@ jobs:
         echo "Starting macOS build..."
         # Ensure macOS build tools are properly set up
         export CSC_IDENTITY_AUTO_DISCOVERY=false
+        export DEBUG=electron-builder,electron-builder:*
+        # List files in dist directory
+        echo "Contents of dist directory:"
+        if [ -d "dist" ]; then
+          find dist -type f -maxdepth 2 | head -n 20
+        else
+          echo "dist directory not found!"
+        fi
         # Build with specific flags for macOS compatibility
-        npx electron-builder build --mac --publish never --config electron-builder.yml
+        echo "Starting macOS build process..."
+        npx electron-builder build --mac --publish never --config electron-builder.yml --verbose
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
