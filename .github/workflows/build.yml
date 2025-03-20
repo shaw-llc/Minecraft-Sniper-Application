@@ -2,11 +2,9 @@ name: Build Application
 
 on:
   push:
-    branches: [ main ]
-    tags:
-      - 'v*'
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -15,53 +13,43 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [16.x]
         
     steps:
     - uses: actions/checkout@v3
     
-    - name: Set up Node.js
+    - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 16.x
         cache: 'npm'
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-    
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests colorama python-dotenv urllib3 beautifulsoup4
-    
-    - name: Install Node.js dependencies
+    - name: Install Dependencies
       run: npm ci
     
-    - name: Run copy-python script
-      run: npm run copy-python
+    - name: Create certificates directory
+      run: mkdir -p certificates
+      
+    - name: Create empty certificate files for build
+      run: |
+        touch certificates/entitlements.plist
+        echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict></dict></plist>' > certificates/entitlements.plist
+        echo 'module.exports = async function (params) { console.log("Notarization skipped"); };' > certificates/notarize.js
     
-    - name: Build app
-      run: npm run build
-    
-    - name: Package app
-      run: npm run package
-    
-    - name: Make distribution (non-tag)
-      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-      run: npm run make
-    
-    - name: Make and publish (tag)
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    - name: Build for current platform
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          npx electron-builder build --win --publish never
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          npx electron-builder build --mac --publish never
+        elif [ "$RUNNER_OS" == "Linux" ]; then
+          npx electron-builder build --linux --publish never
+        fi
+      shell: bash
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npm run publish
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: application-${{ matrix.os }}
-        path: |
-          out/make/**/*
-          out/*.zip 
+        name: build-${{ matrix.os }}
+        path: dist/ 
