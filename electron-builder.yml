@@ -1,0 +1,50 @@
+appId: com.openmc.usernameSniper
+productName: OpenMC Username Sniper
+copyright: Copyright © 2023 Shaw LLC
+
+directories:
+  output: out
+  buildResources: assets
+
+files:
+  - dist/**/*
+  - node_modules/**/*
+  - src/main/**/*
+  - src/python/**/*
+  - package.json
+
+extraResources:
+  - src/python/**/*
+
+asar: true
+
+publish:
+  provider: github
+  owner: shaw-llc
+  repo: Minecraft-Sniper-Application
+  releaseType: draft
+
+mac:
+  category: public.app-category.utilities
+  target: dmg
+  icon: assets/icon.icns
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: certificates/entitlements.plist
+  entitlementsInherit: certificates/entitlements.plist
+  notarize: false
+
+win:
+  target: nsis
+  icon: assets/icon.ico
+  publisherName: Shaw LLC
+  verifyUpdateCodeSignature: false
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+  icon: assets/icon.png
+
+afterSign: certificates/notarize.js 

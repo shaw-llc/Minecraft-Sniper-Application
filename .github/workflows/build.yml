@@ -142,6 +142,16 @@ jobs:
         }
       shell: pwsh
     
+    - name: Run Vite build (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        Write-Output "Running Vite build..."
+        npm run build
+        Write-Output "Copying Python files..."
+        node copy_python_files.js
+        Write-Output "Vite build complete"
+      shell: pwsh
+    
     - name: Build for Windows
       if: runner.os == 'Windows'
       run: |
@@ -159,7 +169,7 @@ jobs:
         npx electron-builder --version
         # Build with specific flags for Windows compatibility
         Write-Output "Starting Windows build process..."
-        npx electron-builder build --win --publish never
+        npx electron-builder build --win --publish never --config electron-builder.yml
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -171,13 +181,23 @@ jobs:
         # Ensure macOS build tools are properly set up
         export CSC_IDENTITY_AUTO_DISCOVERY=false
         # Build with specific flags for macOS compatibility
-        npx electron-builder build --mac --publish never
+        npx electron-builder build --mac --publish never --config electron-builder.yml
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run Vite build (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        echo "Running Vite build..."
+        npm run build
+        echo "Copying Python files..."
+        node copy_python_files.js
+        echo "Vite build complete"
+      shell: bash
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-${{ matrix.os }}
-        path: dist/ 
+        path: out/ 

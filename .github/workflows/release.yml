@@ -143,6 +143,26 @@ jobs:
         }
       shell: pwsh
     
+    - name: Run Vite build (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        Write-Output "Running Vite build..."
+        npm run build
+        Write-Output "Copying Python files..."
+        node copy_python_files.js
+        Write-Output "Vite build complete"
+      shell: pwsh
+    
+    - name: Run Vite build (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        echo "Running Vite build..."
+        npm run build
+        echo "Copying Python files..."
+        node copy_python_files.js
+        echo "Vite build complete"
+      shell: bash
+    
     - name: Build for Windows
       if: matrix.os == 'windows-latest'
       run: |
@@ -160,7 +180,7 @@ jobs:
         npx electron-builder --version
         # Build with specific flags for Windows compatibility
         Write-Output "Starting Windows build process..."
-        npx electron-builder build --win --publish never
+        npx electron-builder build --win --publish never --config electron-builder.yml
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -172,7 +192,7 @@ jobs:
         # Ensure macOS build tools are properly set up
         export CSC_IDENTITY_AUTO_DISCOVERY=false
         # Build with specific flags for macOS compatibility
-        npx electron-builder build --mac --publish never
+        npx electron-builder build --mac --publish never --config electron-builder.yml
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -181,7 +201,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: release-${{ matrix.os }}
-        path: dist/
+        path: out/
 
   release:
     needs: build
@@ -194,16 +214,16 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: release-windows-latest
-        path: dist/windows
+        path: out/windows
         
     - name: Download macOS artifacts
       uses: actions/download-artifact@v4
       with:
         name: release-macos-latest
-        path: dist/macos
+        path: out/macos
     
     - name: Display artifacts structure
-      run: ls -R dist/
+      run: ls -R out/
     
     - name: Extract version from tag
       id: get_version
@@ -213,8 +233,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          dist/windows/**/*.exe
-          dist/macos/**/*.dmg
+          out/windows/**/*.exe
+          out/macos/**/*.dmg
         draft: false
         prerelease: false
         name: OpenMC Username Sniper v${{ steps.get_version.outputs.version }}

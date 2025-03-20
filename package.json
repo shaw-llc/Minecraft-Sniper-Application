@@ -9,9 +9,9 @@
     "dev": "vite",
     "build": "vite build",
     "copy-python": "node copy_python_files.js",
-    "package": "npm run build && electron-forge package",
-    "make": "npm run build && electron-forge make",
-    "publish": "npm run build && electron-forge publish",
+    "package": "npm run build && npm run copy-python && electron-builder --config electron-builder.yml",
+    "make": "npm run build && npm run copy-python && electron-builder --config electron-builder.yml",
+    "publish": "npm run build && npm run copy-python && electron-builder --publish always --config electron-builder.yml",
     "setup": "npm install && npm run copy-python"
   },
   "keywords": [
@@ -137,13 +137,18 @@
     "appId": "com.openmc.usernameSniper",
     "productName": "OpenMC Username Sniper",
     "files": [
-      "build/**/*",
+      "dist/**/*",
       "node_modules/**/*",
       "src/main/**/*",
+      "src/python/**/*",
+      "package.json"
+    ],
+    "extraResources": [
       "src/python/**/*"
     ],
     "directories": {
-      "buildResources": "assets"
+      "buildResources": "assets",
+      "output": "out"
     },
     "publish": [
       {
@@ -159,7 +164,7 @@
       "icon": "assets/icon.ico",
       "certificateFile": "certificates/windows-cert.pfx",
       "certificatePassword": "${env.WINDOWS_CERT_PASSWORD}",
-      "verifyUpdateCodeSignature": true,
+      "verifyUpdateCodeSignature": false,
       "publisherName": "Shaw LLC"
     },
     "mac": {
@@ -171,9 +176,7 @@
       "gatekeeperAssess": false,
       "entitlements": "certificates/entitlements.plist",
       "entitlementsInherit": "certificates/entitlements.plist",
-      "notarize": {
-        "teamId": "${env.APPLE_TEAM_ID}"
-      }
+      "notarize": false
     },
     "linux": {
       "target": [
